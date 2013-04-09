@@ -1,0 +1,21 @@
+{
+  "name": "flokk-api",
+  "version": "0.1.0",
+  "description": "Flokk API",
+  "main": "app.js",
+  "scripts": {
+    "test": "NODE_ENV=test mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CamShaft/flokk-api.git"
+  },
+  "author": "Cameron Bytheway <cameron@theflokk.com>",
+  "license": "MIT",
+  "dependencies": {
+    "startup": "~0.1.12",
+    "simple-stack-api": "~0.2.0",
+    "express": "~3.1.1",
+    "batch": "~0.3.2"
+  }
+}
