@@ -4,7 +4,7 @@
   "description": "Flokk API",
   "main": "app.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha"
+    "test": "NODE_ENV=test mocha -R spec"
   },
   "repository": {
     "type": "git",
@@ -16,6 +16,12 @@
     "startup": "~0.1.12",
     "simple-stack-api": "~0.2.0",
     "express": "~3.1.1",
-    "batch": "~0.3.2"
+    "batch": "~0.3.2",
+    "validate": "git+https://github.com/CamShaft/validate.git"
+  },
+  "devDependencies": {
+    "should": "~1.2.2",
+    "mocha": "~1.9.0",
+    "supertest": "~0.5.1"
   }
 }

@@ -13,27 +13,31 @@ var app = module.exports = stack();
 /**
  * Initialize the database
  */
+function db(req, res) {
+  // Noop
+  var links = req.key === "links" ? {friend: {bucket: "bucket", key: "key"}} : {};
+  res.emit("response", {
+    metadata: {
+      links: links
+    },
+    data: "",
+    key: "key",
+    error: (req.key === "error" ? new Error("test") : null)
+  });
+  ["this", "is", "a", "test"].forEach(function (data) {
+    res.emit("data", data);
+  })
+  res.emit("end");
+};
+
+app.configure("test", function() {
+  simpleDB.use("cart", db);
+  simpleDB.use("products", db);
+  simpleDB.use("watchers", db);
+});
+
 app.configure("development", function() {
-
-
-  function db(req, res) {
-    // Noop
-    var links = req.key === "links" ? {friend: {bucket: "bucket", key: "key"}} : {};
-    res.emit("response", {
-      metadata: {
-        links: links
-      },
-      data: "",
-      key: "key",
-      error: (req.key === "error" ? new Error("test") : null)
-    });
-    ["this", "is", "a", "test"].forEach(function (data) {
-      res.emit("data", data);
-    })
-    res.emit("end");
-  };
-
-
+  simpleDB.use("cart", db);
   simpleDB.use("products", db);
   simpleDB.use("watchers", db);
 });
