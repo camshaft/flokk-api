@@ -17,7 +17,11 @@
     "simple-stack-api": "~0.2.0",
     "express": "~3.1.1",
     "batch": "~0.3.2",
-    "validate": "git+https://github.com/CamShaft/validate.git"
+    "validate": "git+https://github.com/CamShaft/validate.git",
+    "simple-db": "0.0.2",
+    "connect-ensure-login": "~0.1.0",
+    "passport": "~0.1.16",
+    "oauth2orize": "~0.1.0"
   },
   "devDependencies": {
     "should": "~1.2.2",
