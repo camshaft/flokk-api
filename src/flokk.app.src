@@ -1,0 +1,16 @@
+{application, flokk, [
+  {id, "flokk"},
+  {description, "Flokk API"},
+  {vsn, "0.1.0"},
+  {registered, [syslog_drain_sup]},
+  {applications, [
+    kernel,
+    stdlib,
+    crypto,
+    lager,
+    ranch,
+    cowboy
+  ]},
+  {mod, { flokk_app, []}},
+  {env, []}
+]}.
