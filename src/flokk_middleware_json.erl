@@ -12,7 +12,11 @@ execute(Req, Env) ->
       {ok, Req, Env};
     Body ->
       OrigPath = proplists:get_value(orig_path, Env, <<"/">>),
-      Body2 = [{<<"href">>, flokk_util:resolve(OrigPath, Req)}|Body],
-      {ok, Req1} = cowboy_req:reply(Status, [{<<"content-type">>, <<"application/json">>}], jsx:encode(Body2), Req),
+      BodyRoot = case OrigPath of
+        <<"/">> -> Body;
+        _ -> [{<<"root">>, [{<<"href">>, flokk_util:resolve(<<"/">>, Req)}]}|Body]
+      end,
+      Json = jsx:encode([{<<"href">>, flokk_util:resolve(OrigPath, Req)}|BodyRoot]),
+      {ok, Req1} = cowboy_req:reply(Status, [{<<"content-type">>, <<"application/json">>}], Json, Req),
       {ok, Req1, Env}
   end.

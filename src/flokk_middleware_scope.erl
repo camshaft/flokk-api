@@ -12,11 +12,7 @@ execute(Req, Env) ->
     Scope ->
       {UserScopes, Req} = cowboy_req:meta(scopes, Req),
       case lists:member(Scope, UserScopes) of
-        true ->
-          {ok, Req, Env};
-        false ->
-          {ok, Req2} = cowboy_req:reply(403, Req),
-          %% TODO send back a better error response
-          {halt, Req2, Env}
+        true -> {ok, Req, Env};
+        _ -> {error, 403, Req}
       end
   end.

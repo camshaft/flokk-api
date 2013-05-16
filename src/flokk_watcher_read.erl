@@ -4,7 +4,7 @@
 -export([handle/2]).
 -export([terminate/3]).
 
-init(_Transport, Req, []) ->
+init(_Transport, Req, _) ->
   {ok, Req, undefined}.
 
 handle(Req, State) ->

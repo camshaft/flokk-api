@@ -16,7 +16,7 @@ start(_Type, _Args) ->
   {ok, _} = cowboy:start_http(http, 100, [{port, Port}], [
     {compress, true},
     {env, [{dispatch, Dispatch}]},
-    {onresponse, fun flokk_hook:handle/4}, %% TODO only enable in dev
+    {onresponse, fun flokk_hook:handle/4},
     {middlewares, [
       flokk_middleware_empty_favicon,
       flokk_middleware_vary, %% TODO do we really need this?
