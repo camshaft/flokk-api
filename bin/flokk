@@ -1,0 +1,3 @@
+#!/bin/sh
+
+erl +K true +A100 -smp auto -name flokk@`hostname` -pa ebin -pa deps/*/ebin -noshell -noinput -s flokk

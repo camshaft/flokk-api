@@ -1,1 +1,1 @@
-web: erl -pa `pwd`/ebin `pwd`/deps/*/ebin -noshell +A 64 +K true -smp auto -s flokk
+web: ./bin/flokk
