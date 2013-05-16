@@ -10,12 +10,13 @@
 
 start(_Type, _Args) ->
   configure(flokk_util:env("ERL_ENV", "production")),
+  Sender = simple_secrets:init(list_to_binary(flokk_util:env("ACCESS_TOKEN_KEY", "my little secret"))),
   Routes = flokk_util:load_dispatch(?MODULE),
   Dispatch = cowboy_router:compile(Routes),
   Port = list_to_integer(flokk_util:env("PORT", "5000")),
   {ok, _} = cowboy:start_http(http, 100, [{port, Port}], [
     {compress, true},
-    {env, [{dispatch, Dispatch}]},
+    {env, [{dispatch, Dispatch},{sender,Sender}]},
     {onresponse, fun flokk_hook:handle/4},
     {middlewares, [
       flokk_middleware_empty_favicon,
