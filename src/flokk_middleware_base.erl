@@ -15,6 +15,8 @@ execute(Req, Env) ->
 choose({undefined, _}, {B, _}) -> B;
 choose({A, _}, _) -> A.
 
+format(Proto, Host, Port, <<"/">>) ->
+  format(Proto, Host, Port, <<>>);
 format(<<"http">>, Host, <<"80">>, Path) ->
   <<"http://",Host/binary,Path/binary>>;
 format(<<"https">>, Host, <<"443">>, Path) ->
