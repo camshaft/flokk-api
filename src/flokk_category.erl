@@ -62,6 +62,22 @@ init([]) ->
 
 handle_call(stop, _, State) ->
   {stop, normal, stopped, State};
+handle_call(list, _, State) ->
+  Categories = [
+    {<<"living-room">>, [
+      {<<"title">>, <<"Living Room">>}
+    ]},
+    {<<"bathroom">>, [
+      {<<"title">>, <<"Bathroom">>}
+    ]},
+    {<<"kitchen">>, [
+      {<<"title">>, <<"Kitchen">>}
+    ]},
+    {<<"accessories">>, [
+      {<<"title">>, <<"Accessories">>}
+    ]}
+  ],
+  {reply, Categories, State};
 handle_call(_, _, State) ->
   {reply, ignore, State}.
 

@@ -17,5 +17,15 @@ start_link() ->
 %% supervisor.
 
 init([]) ->
-  Procs = [],
+  Procs = [
+    {flokk_category,
+      {flokk_category, start_link, []},
+      permanent, 5000, worker, [flokk_category]},
+    {flokk_product,
+      {flokk_product, start_link, []},
+      permanent, 5000, worker, [flokk_product]},
+    {flokk_watcher,
+      {flokk_watcher, start_link, []},
+      permanent, 5000, worker, [flokk_watcher]}
+  ],
   {ok, {{one_for_one, 10, 10}, Procs}}.
