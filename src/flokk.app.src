@@ -2,7 +2,7 @@
   {id, "flokk"},
   {description, "Flokk API"},
   {vsn, "0.1.0"},
-  {registered, [syslog_drain_sup]},
+  {registered, []},
   {applications, [
     kernel,
     stdlib,

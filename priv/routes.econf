@@ -1,0 +1,31 @@
+{'_', [
+  {"GET", "/", flokk_root, []},
+
+  {"GET", "/categories", flokk_category_list, [{service, flokk_category}]}, %% TODO do we need a scope for this
+  {"POST", "/categories", flokk_category_create, [{scope, <<"category.create">>}]},
+  {"GET", "/categories/:category", flokk_category_read, []}, %% TODO do we need a scope for this
+  {"POST", "/categories/:category", flokk_category_update, [{scope, <<"category.update">>}]},
+  {"DELETE", "/categories/:category", flokk_category_delete, [{scope, <<"category.delete">>}]},
+
+  {"GET", "/products", flokk_product_list, [{scope, <<"product.list">>}]},
+  {"POST", "/products", flokk_product_create, [{scope, <<"product.create">>}]},
+  {"GET", "/products/:product", flokk_product_read, [{scope, <<"product.read">>}]},
+  {"GET", "/products/:product", flokk_product_update, [{scope, <<"product.update">>}]},
+  {"DELETE", "/products/:product", flokk_product_delete, [{scope, <<"product.delete">>}]},
+
+  {"POST", "/products/:product/watchers", flokk_watcher_create, [{scope, <<"watchers.create">>}]},
+  {"GET", "/products/:product/watchers", flokk_watcher_list, [{scope, <<"watchers.list">>}]},
+  {"DELETE", "/products/:product/watchers/:watcher", flokk_watcher_read, [{scope, <<"watchers.read">>}]},
+  {"DELETE", "/products/:product/watchers/:watcher", flokk_watcher_delete, [{scope, <<"watchers.delete">>}]},
+
+  {"POST", "/users", flokk_user_create, [{scope, <<"user.create">>}]},
+  {"GET", "/users/:user", flokk_user_read, [{scope, <<"user.read">>}]},
+  {"POST", "/users/:user", flokk_user_update, [{scope, <<"user.update">>}]},
+  {"DELETE", "/users/:user", flokk_user_delete, [{scope, <<"user.delete">>}]},
+
+  {"GET", "/users/:user/history", flokk_user_history, [{scope, <<"user.history">>}]},
+
+  {"GET", "/vendors", flokk_vendor_list, [{scope, <<"vendors.list">>}]},
+  {"POST", "/vendors", flokk_vendor_create, [{scope, <<"vendors.create">>}]},
+  {"GET", "/vendors/:vendor", flokk_user_handler, []}
+]}.
