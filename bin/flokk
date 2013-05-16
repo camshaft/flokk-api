@@ -1,3 +1,6 @@
 #!/bin/sh
 
-erl +K true +A100 -smp auto -name flokk@`hostname` -pa ebin -pa deps/*/ebin -env ERL_LIBS deps -noshell -noinput -s flokk
+erlang="./otp/bin/erl"
+! [ -f "$erlang" ] && erlang="erl"
+
+$erlang +K true +A100 -smp auto -name flokk@`hostname` -pa ebin -pa deps/*/ebin -env ERL_LIBS deps -noshell -noinput -s flokk
