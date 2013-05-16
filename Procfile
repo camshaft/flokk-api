@@ -1,1 +1,1 @@
-web: erl -pa ebin deps/*/ebin -noshell +A 64 +K true -smp auto -s flokk
+web: erl -pa ./ebin ./deps/*/ebin -noshell +A 64 +K true -smp auto -s flokk
