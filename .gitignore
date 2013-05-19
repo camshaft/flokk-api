@@ -8,3 +8,4 @@ dev/sync
 *.log
 *.dump
 log
+.env

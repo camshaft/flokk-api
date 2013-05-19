@@ -1,31 +1,40 @@
 -module (flokk_category_list).
 
--export([init/3]).
--export([handle/2]).
--export([terminate/3]).
+-export([list/2]).
+-export([body/3]).
+-export([ttl/2]).
 
-init(_Transport, Req, _) ->
-  {ok, Req, undefined}.
-
-handle(Req, State) ->
+list(Req, State) ->
   Categories = flokk_category:list(),
+  {Categories, Req, State}.
+
+body(Categories, Req, State) ->
   Body = [
     {<<"categories">>,
       [format_category(ID, Category, Req) || {ID, Category} <- Categories]
     }
   ],
 
-  %% TODO if scope `category.create` add the `create` action
+  %% Expose the create form
+  Body1 = flokk_auth:build(<<"category.create">>, Req, Body, [
+    {<<"create">>, [
+      {<<"action">>, flokk_util:resolve(<<"categories">>, Req)},
+      {<<"method">>, <<"POST">>},
+      {<<"input">>, [
+        {<<"title">>, [
+          {<<"type">>, <<"text">>}
+        ]}
+      ]}
+    ]}
+  ]),
 
-  Req1 = cowboy_req:set_meta(body, Body, Req),
-  Req2 = cowboy_req:set_meta(ttl, <<"3600">>, Req1),
-  {ok, Req2, State}.
+  {Body1, Req, State}.
 
 format_category(ID, Category, Req)->
   [
-    {<<"title">>, proplists:get_value(<<"title">>, Category)},
-    {<<"href">>, flokk_util:resolve(<<"categories">>, ID, Req)}
+    {<<"href">>, flokk_util:resolve([<<"categories">>, ID], Req)},
+    {<<"title">>, proplists:get_value(<<"title">>, Category)}
   ].
 
-terminate(_Reason, _Req, _State) ->
-  ok.
+ttl(Req, State)->
+  {3600, Req, State}.

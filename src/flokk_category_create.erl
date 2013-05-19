@@ -1,15 +1,22 @@
--module (flokk_category_create).
+-module(flokk_category_create).
 
--export([init/3]).
--export([handle/2]).
--export([terminate/3]).
+-export([scope/2]).
+-export([validate/3]).
+-export([create/3]).
+-export([location/3]).
 
-init(_Transport, Req, _) ->
-  {ok, Req, undefined}.
+-define(SCOPE, <<"category.create">>).
 
-handle(Req, State) ->
-  Req1 = cowboy_req:set_meta(body, [], Req),
-  {ok, Req1, State}.
+scope(Req, State) ->
+  {?SCOPE, Req, State}.
 
-terminate(_Reason, _Req, _State) ->
-  ok.
+%% TODO validate body
+validate(_Body, Req, State) ->
+  {true, Req, State}.
+
+create(Body, Req, State) ->
+  {ok, ID} = flokk_category:create(Body),
+  {ID, Req, State}.
+
+location(ID, Req, State) ->
+  {flokk_util:resolve([<<"categories">>, ID], Req), Req, State}.

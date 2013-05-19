@@ -1,14 +1,9 @@
 -module (flokk_root).
 
--export([init/3]).
--export([handle/2]).
--export([terminate/3]).
+-export([body/2]).
+-export([ttl/2]).
 
-init(_Transport, Req, []) ->
-  {ok, Req, undefined}.
-
-handle(Req, State) ->
-  %% TODO come up with a better way to build this data
+body(Req, State) ->
   Body = [
     {<<"sales">>, [
       {<<"href">>, flokk_util:resolve(<<"categories/sales">>, Req)},
@@ -21,15 +16,19 @@ handle(Req, State) ->
   ],
 
   %% User specific links
-  Body2 = case cowboy_req:meta(user_id, Req, undefined) of
-    {undefined, Req} -> Body;
-    {UserID, Req} -> [{<<"profile">>, [{<<"href">>, flokk_util:resolve(<<"users/">>,UserID, Req)}]}|Body]
+  Body2 = case flokk_auth:user_id(Req) of
+    undefined -> Body;
+    UserID ->
+      [
+        {<<"profile">>, [
+          {<<"href">>, flokk_util:resolve([<<"users">>,UserID], Req)}
+        ]}
+      |Body]
   end,
 
-  %% Pass the body
-  Req1 = cowboy_req:set_meta(body, Body2, Req),
-  Req2 = cowboy_req:set_meta(ttl, <<"3600">>, Req1),
-  {ok, Req2, State}.
+  io:format("~p",[Body2]),
 
-terminate(_Reason, _Req, _State) ->
-  ok.
+  {Body2, Req, State}.
+
+ttl(Req, State)->
+  {3600, Req, State}.

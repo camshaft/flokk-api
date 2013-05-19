@@ -4,6 +4,7 @@
 
 %% API.
 -export([start_link/0]).
+-export([start_link/1]).
 
 %% supervisor.
 -export([init/1]).
@@ -12,20 +13,16 @@
 
 -spec start_link() -> {ok, pid()}.
 start_link() ->
-  supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+  supervisor:start_link({local, ?MODULE}, ?MODULE, [simple_db_riak]).
+start_link(Backend) ->
+  supervisor:start_link({local, ?MODULE}, ?MODULE, [Backend]).
 
 %% supervisor.
 
-init([]) ->
+init([Backend]) ->
   Procs = [
     {flokk_category,
-      {flokk_category, start_link, []},
-      permanent, 5000, worker, [flokk_category]},
-    {flokk_product,
-      {flokk_product, start_link, []},
-      permanent, 5000, worker, [flokk_product]},
-    {flokk_watcher,
-      {flokk_watcher, start_link, []},
-      permanent, 5000, worker, [flokk_watcher]}
+      {flokk_category, start_link, [Backend]},
+      permanent, 5000, worker, [flokk_category]}
   ],
   {ok, {{one_for_one, 10, 10}, Procs}}.

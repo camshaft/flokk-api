@@ -6,23 +6,14 @@
 -export ([get_value/3]).
 -export ([load_dispatch/1]).
 -export ([resolve/2]).
--export ([resolve/3]).
--export ([resolve/4]).
--export ([resolve/5]).
--export ([resolve/6]).
--export ([resolve/7]).
--export ([resolve/8]).
--export ([resolve/9]).
--export ([resolve/10]).
+-export ([binary_join/2]).
 
 env(Name) ->
-  env(Name, false).
+  env(Name, undefined).
 env(Name, Default)->
   case os:getenv(Name) of
-    false ->
-      Default;
-    Value ->
-      Value
+    false -> Default;
+    Value -> Value
   end.
 
 get_value(Key, List) ->
@@ -36,10 +27,7 @@ get_value(Key, List, Default) ->
 load_dispatch(App) ->
   File = priv_dir(App),
   {ok, HostConfs} = file:consult(filename:join(File, "routes.econf")),
-  [patch_method(Host, Paths) || {Host, Paths} <- HostConfs].
-
-patch_method(Host, Paths) ->
-  {Host, [{"/"++Method++" "++Path, Handler, Options} || {Method, Path, Handler, Options} <- Paths]}.
+  HostConfs.
 
 priv_dir(Mod) ->
   {ok, App} = application:get_application(?MODULE),
@@ -50,6 +38,8 @@ priv_dir(Mod) ->
     Path -> Path
   end.
 
+resolve(Parts, Req) when is_list(Parts) ->
+  resolve(binary_join(Parts, <<"/">>), Req);
 resolve(<<"/">>, Req) ->
   {Base, Req} = cowboy_req:meta(base, Req),
   <<Base/binary, "/">>;
@@ -58,23 +48,6 @@ resolve(<<"/",Path/binary>>, Req) ->
 resolve(Path, Req) ->
   {Base, Req} = cowboy_req:meta(base, Req),
   <<Base/binary, "/", Path/binary>>.
-
-resolve(P1, P2, Req) ->
-  resolve(binary_join([P1, P2], <<"/">>), Req).
-resolve(P1, P2, P3, Req) ->
-  resolve(binary_join([P1, P2, P3], <<"/">>), Req).
-resolve(P1, P2, P3, P4, Req) ->
-  resolve(binary_join([P1, P2, P3, P4], <<"/">>), Req).
-resolve(P1, P2, P3, P4, P5, Req) ->
-  resolve(binary_join([P1, P2, P3, P4, P5], <<"/">>), Req).
-resolve(P1, P2, P3, P4, P5, P6, Req) ->
-  resolve(binary_join([P1, P2, P3, P4, P5, P6], <<"/">>), Req).
-resolve(P1, P2, P3, P4, P5, P6, P7, Req) ->
-  resolve(binary_join([P1, P2, P3, P4, P5, P6, P7], <<"/">>), Req).
-resolve(P1, P2, P3, P4, P5, P6, P7, P8, Req) ->
-  resolve(binary_join([P1, P2, P3, P4, P5, P6, P7, P8], <<"/">>), Req).
-resolve(P1, P2, P3, P4, P5, P6, P7, P8, P9, Req) ->
-  resolve(binary_join([P1, P2, P3, P4, P5, P6, P7, P8, P9], <<"/">>), Req).
 
 binary_join([], _Sep) ->
   <<>>;

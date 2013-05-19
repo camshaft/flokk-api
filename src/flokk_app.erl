@@ -10,38 +10,38 @@
 
 start(_Type, _Args) ->
   configure(flokk_util:env("ERL_ENV", "production")),
-  Sender = simple_secrets:init(list_to_binary(flokk_util:env("ACCESS_TOKEN_KEY", "my little secret"))),
-  Routes = flokk_util:load_dispatch(?MODULE),
-  Dispatch = cowboy_router:compile(Routes),
   Port = list_to_integer(flokk_util:env("PORT", "5000")),
+
+  Secret = simple_secrets:init(list_to_binary(flokk_util:env("ACCESS_TOKEN_KEY"))),
+  ScopeEnum = jsx:decode(list_to_binary(flokk_util:env("SCOPES", "{}"))),
+
+  Routes = flokk_util:load_dispatch(?MODULE),
+
   {ok, _} = cowboy:start_http(http, 100, [{port, Port}], [
     {compress, true},
-    {env, [{dispatch, Dispatch},{sender,Sender}]},
-    {onresponse, fun flokk_hook:handle/4},
+    {env, [
+      {dispatch, cowboy_router:compile(Routes)},
+      {token_secret, Secret},
+      {scopes_enum, ScopeEnum}
+    ]},
+    {onrequest, fun flokk_hook:start/1},
+    {onresponse, fun flokk_hook:terminate/4},
     {middlewares, [
       flokk_middleware_empty_favicon,
-      flokk_middleware_vary, %% TODO do we really need this?
       flokk_middleware_base,
-      flokk_middleware_auth,
-      flokk_middleware_method_match,
+      flokk_auth,
       cowboy_router,
-      flokk_middleware_available,
-      flokk_middleware_scope,
       cowboy_handler,
-      flokk_middleware_ttl,
-      flokk_middleware_etag,
-      flokk_middleware_json,
       flokk_middleware_pubsub
     ]}
   ]),
-  lager:info("Server started on port ~p", [flokk_util:env("PORT")]),
+  lager:info("Server started on port ~p", [Port]),
   flokk_sup:start_link().
 
 stop(_State) ->
   ok.
 
 configure("development") ->
-  sync:go(),
-  lager:set_loglevel(lager_console_backend, debug);
+  sync:go();
 configure(_)->
   ok.

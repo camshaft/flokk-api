@@ -1,15 +1,17 @@
--module (flokk_category_delete).
+-module(flokk_category_delete).
 
--export([init/3]).
--export([handle/2]).
--export([terminate/3]).
+-export([scope/2]).
+-export([delete/3]).
+-export([location/2]).
 
-init(_Transport, Req, _) ->
-  {ok, Req, undefined}.
+-define (SCOPE, <<"category.delete">>).
 
-handle(Req, State) ->
-  Req1 = cowboy_req:set_meta(body, [], Req),
-  {ok, Req1, State}.
+scope(Req, State) ->
+  {?SCOPE, Req, State}.
 
-terminate(_Reason, _Req, _State) ->
-  ok.
+delete(ID, Req, State) ->
+  ok = flokk_category:delete(ID),
+  {ok, Req, State}.
+
+location(Req, State) ->
+  {flokk_util:resolve(<<"categories">>, Req), Req, State}.

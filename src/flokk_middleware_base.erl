@@ -3,6 +3,7 @@
 -export([execute/2]).
 
 execute(Req, Env) ->
+  lager:debug("middleware:base"),
   {Port, Req} = cowboy_req:port(Req),
   PortBin = list_to_binary(integer_to_list(Port)),
   ForwardedProto = choose(cowboy_req:header(<<"x-forwarded-proto">>, Req), {<<"http">>, Req}),

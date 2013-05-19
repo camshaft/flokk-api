@@ -3,6 +3,7 @@
 -export([execute/2]).
 
 execute(Req, Env) ->
+  lager:debug("middleware:favicon"),
   {Path, Req} = cowboy_req:path(Req),
   case Path of
     <<"/favicon.ico">> -> {halt, Req};
