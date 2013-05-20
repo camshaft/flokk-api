@@ -9,10 +9,10 @@ init(Req, _Opts) ->
 
 body(Req, State) ->
   Body = [
-    {<<"sales">>, [
-      {<<"href">>, flokk_util:resolve(<<"categories/sales">>, Req)},
-      {<<"title">>, <<"Sales">>}
-    ]},
+    % {<<"sales">>, [
+    %   {<<"href">>, flokk_util:resolve(<<"sales">>, Req)},
+    %   {<<"title">>, <<"Sales">>}
+    % ]},
     {<<"categories">>, [
       {<<"href">>, flokk_util:resolve(<<"categories">>, Req)},
       {<<"title">>, <<"Categories">>}
