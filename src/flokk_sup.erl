@@ -23,6 +23,9 @@ init([Backend]) ->
   Procs = [
     {flokk_category,
       {flokk_category, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_category]}
+      permanent, 5000, worker, [flokk_category]},
+    {flokk_item,
+      {flokk_item, start_link, [Backend]},
+      permanent, 5000, worker, [flokk_item]}
   ],
   {ok, {{one_for_one, 10, 10}, Procs}}.

@@ -1,4 +1,4 @@
--module(flokk_category_create).
+-module(flokk_item_create).
 
 -export([init/2]).
 -export([scope/2]).
@@ -6,7 +6,7 @@
 -export([create/3]).
 -export([location/3]).
 
--define(SCOPE, <<"category.create">>).
+-define(SCOPE, <<"item.create">>).
 
 init(Req, _Opts) ->
   {ok, Req, []}.
@@ -19,8 +19,8 @@ validate(_Body, Req, State) ->
   {true, Req, State}.
 
 create(Body, Req, State) ->
-  {ok, ID} = flokk_category:create(Body),
+  {ok, ID} = flokk_item:create(Body),
   {ID, Req, State}.
 
 location(ID, Req, State) ->
-  {flokk_util:resolve([<<"categories">>, ID], Req), Req, State}.
+  {flokk_util:resolve([<<"items">>, ID], Req), Req, State}.

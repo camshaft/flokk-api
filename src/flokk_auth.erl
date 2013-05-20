@@ -38,4 +38,6 @@ user_id(Req) ->
 format_user_id(UserId) when is_binary(UserId) ->
   UserId;
 format_user_id(UserId) when is_integer(UserId) ->
-  list_to_binary(integer_to_list(UserId)).
+  list_to_binary(integer_to_list(UserId));
+format_user_id(_) ->
+  undefined.

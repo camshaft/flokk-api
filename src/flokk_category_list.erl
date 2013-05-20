@@ -1,8 +1,12 @@
 -module (flokk_category_list).
 
+-export([init/2]).
 -export([list/2]).
 -export([body/3]).
 -export([ttl/2]).
+
+init(Req, _Opts) ->
+  {ok, Req, []}.
 
 list(Req, State) ->
   Categories = flokk_category:list(),

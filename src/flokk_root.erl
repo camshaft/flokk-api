@@ -1,7 +1,11 @@
 -module (flokk_root).
 
+-export([init/2]).
 -export([body/2]).
 -export([ttl/2]).
+
+init(Req, _Opts) ->
+  {ok, Req, []}.
 
 body(Req, State) ->
   Body = [
@@ -25,8 +29,6 @@ body(Req, State) ->
         ]}
       |Body]
   end,
-
-  io:format("~p",[Body2]),
 
   {Body2, Req, State}.
 

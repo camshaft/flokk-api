@@ -1,8 +1,12 @@
 -module (flokk_category_read).
 
+-export([init/2]).
 -export([read/3]).
 -export([body/4]).
 -export([ttl/2]).
+
+init(Req, _Opts) ->
+  {ok, Req, []}.
 
 read(ID, Req, State) ->
   case flokk_category:read(ID) of
