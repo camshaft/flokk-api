@@ -67,8 +67,8 @@ handle_call({read, _ID}, _, DB) ->
     {<<"category">>, <<"accessories">>},
     {<<"vendor_id">>, <<"1234">>},
     {<<"vendor_title">>, <<"Scott n' Dave">>},
-    {<<"retail">>, 49.99},
-    {<<"shipping">>, 2.99},
+    {<<"retail">>, 4999},
+    {<<"shipping">>, 299},
     {<<"thumbnail">>, <<"http://i41.tinypic.com/5kq5j5.jpg">>},
     {<<"images">>, [
       <<"http://i41.tinypic.com/5kq5j5.jpg">>,
