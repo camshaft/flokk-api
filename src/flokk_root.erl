@@ -16,6 +16,10 @@ body(Req, State) ->
     {<<"categories">>, [
       {<<"href">>, flokk_util:resolve(<<"categories">>, Req)},
       {<<"title">>, <<"Categories">>}
+    ]},
+    {<<"vendors">>, [
+      {<<"href">>, flokk_util:resolve(<<"vendors">>, Req)},
+      {<<"title">>, <<"Vendors">>}
     ]}
   ],
 
