@@ -19,6 +19,7 @@ body(ID, Item, Req, State) ->
   URL = flokk_util:resolve([<<"items">>,ID], Req),
   Title = proplists:get_value(<<"title">>, Item, <<>>),
   Description = proplists:get_value(<<"description">>, Item, <<>>),
+  Category = proplists:get_value(<<"category">>, Item, <<"1">>),
   Retail = proplists:get_value(<<"retail">>, Item, <<>>),
   MinPrice = proplists:get_value(<<"min-price">>, Item, 0),
   Shipping = proplists:get_value(<<"shipping">>, Item, 0),
@@ -35,8 +36,8 @@ body(ID, Item, Req, State) ->
     {<<"retail">>, Retail},
     {<<"shipping">>, Shipping},
     {<<"currency">>, Currency},
-    {<<"categories">>, [
-      {<<"href">>, flokk_util:resolve([<<"items">>,ID,<<"categories">>], Req)}
+    {<<"category">>, [
+      {<<"href">>, flokk_util:resolve([<<"categories">>,Category], Req)}
     ]},
     {<<"vendor">>, [
       {<<"href">>, flokk_util:resolve([<<"vendors">>,VendorID], Req)},
