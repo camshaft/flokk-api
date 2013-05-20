@@ -48,10 +48,10 @@ body(ID, Item, Req, State) ->
       {<<"type">>, <<"image/jpeg">>} %% TODO should we store this here or just get it from the extension
     ]},
     {<<"images">>, [
-      [ [
-          {<<"src">>, Image},
-          {<<"type">>, <<"image/jpeg">>}
-        ] || Image <- Images ]
+      [
+        {<<"src">>, Image},
+        {<<"type">>, <<"image/jpeg">>}
+      ] || Image <- Images
     ]}
   ],
 
