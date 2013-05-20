@@ -147,9 +147,12 @@ content_types_provided(Req, State) ->
   ], Req, State}.
 
 %% Call
-to_json(Req, State = #state{command = call, handler = Handler}) ->
+to_json(Req, State = #state{command = call, handler = Handler, body = undefined}) ->
   lager:debug("resource:to_json"),
   format_json(Handler:body(Req, State), Handler);
+to_json(Req, State = #state{command = call, handler = Handler, body = Body}) ->
+  lager:debug("resource:to_json"),
+  format_json(Handler:body(Body, Req, State), Handler);
 
 %% List
 to_json(Req, State = #state{command = list, handler = Handler, data = Data}) ->
@@ -183,9 +186,21 @@ variances(Req, State) ->
   lager:debug("resource:variances"),
   {[<<"authorization">>], Req, State}.
 
-resource_exists(Req, State = #state{command = call}) ->
+resource_exists(Req, State = #state{handler = Handler, command = call}) ->
   lager:debug("resource:resource_exists:call"),
-  {true, Req, State};
+  case erlang:function_exported(Handler, call, 2) of
+    true ->
+      case Handler:call(Req, State) of
+        {error, _, _} = Error ->
+          Error;
+        {false, _, _} = Error ->
+          Error;
+        {Body, Req2, State2} ->
+          {true, Req2, State2#state{body=Body}}
+      end;
+    false ->
+      {true, Req, State}
+  end;
 resource_exists(Req, State = #state{handler = Handler, command = list}) ->
   lager:debug("resource:resource_exists:list"),
   case Handler:list(Req, State) of

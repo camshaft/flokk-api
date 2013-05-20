@@ -19,8 +19,12 @@ validate(_Body, Req, State) ->
   {true, Req, State}.
 
 create(Body, Req, State) ->
-  {ok, ID} = flokk_category:create(Body),
-  {ID, Req, State}.
+  case flokk_category:create(Body) of
+    {ok, ID} ->
+      {ID, Req, State};
+    _ ->
+      {error, 500, Req}
+  end.
 
 location(ID, Req, State) ->
   {flokk_util:resolve([<<"categories">>, ID], Req), Req, State}.

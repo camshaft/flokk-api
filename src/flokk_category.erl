@@ -9,6 +9,7 @@
 -export([create/1]).
 -export([update/2]).
 -export([delete/1]).
+-export([items/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -47,6 +48,9 @@ update(ID, Category) ->
 delete(ID) ->
   gen_server:call(?MODULE, {delete, ID}).
 
+items(ID) ->
+  gen_server:call(?MODULE, {items, ID}).
+
 
 %% gen_server.
 
@@ -72,10 +76,10 @@ handle_call(list, _, DB) ->
     ]}
   ],
   {reply, Response, DB};
-handle_call({read, _ID}, _, DB) ->
+handle_call({read, ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
-    {<<"title">>, <<"__TITLE GOES HERE___">>}
+    {<<"title">>, ID}
   ],
   {reply, {ok, Response}, DB};
 handle_call({create, _Category}, _, DB) ->
@@ -89,6 +93,14 @@ handle_call({update, _ID, _Category}, _, DB) ->
 handle_call({delete, _ID}, _, DB) ->
   % Response = DB:delete(?BUCKET, ID),
   {reply, ok, DB};
+handle_call({items, _ID}, _, DB) ->
+  % Response = DB:delete(?BUCKET, ID),
+  Response = [
+    {<<"1">>, [{<<"title">>, <<"Lame Print 1">>}]},
+    {<<"2">>, [{<<"title">>, <<"Lame Print 2">>}]},
+    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]}
+  ],
+  {reply, {ok, Response}, DB};
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
 handle_call(_, _, DB) ->

@@ -95,6 +95,10 @@ body(ID, Item, Req, State) ->
           {<<"value">>, Thumbnail},
           {<<"options">>, Images}
         ]}
+        %% TODO have options creation form
+        % {<<"options">>, [
+        %   {<<"type">>, <<"">>}
+        % ]}
       ]}
     ]}
   ]),

@@ -8,7 +8,8 @@
     {resource, flokk_category}
   ]},
   {"/categories/:id/items", flokk_resource, [
-    {resource, flokk_category_items}
+    {resource, flokk_category_items},
+    {bare, true}
   ]},
 
   {"/items[/:id]", flokk_resource, [

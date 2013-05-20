@@ -22,7 +22,7 @@ body(ID, Category, Req, State) ->
   Body = [
     {<<"title">>, Title},
     {<<"items">>, [
-      {<<"href">>, flokk_util:resolve([<<"category">>,ID,<<"items">>], Req)}
+      {<<"href">>, flokk_util:resolve([<<"categories">>,ID,<<"items">>], Req)}
     ]}
   ],
 
