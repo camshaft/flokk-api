@@ -20,6 +20,7 @@ body(ID, Item, Req, State) ->
   Title = proplists:get_value(<<"title">>, Item, <<>>),
   Description = proplists:get_value(<<"description">>, Item, <<>>),
   Retail = proplists:get_value(<<"retail">>, Item, <<>>),
+  MinPrice = proplists:get_value(<<"min-price">>, Item, 0),
   Shipping = proplists:get_value(<<"shipping">>, Item, 0),
   Currency = proplists:get_value(<<"currency">>, Item, <<"USD">>),
   VendorID = proplists:get_value(<<"vendor_id">>, Item, <<>>),
@@ -54,40 +55,46 @@ body(ID, Item, Req, State) ->
   ],
 
   Body1 = flokk_auth:build(<<"item.update">>, Req, Body, [
-    {<<"action">>, URL},
-    {<<"method">>, <<"PUT">>},
-    {<<"input">>, [
-      {<<"title">>, [
-        {<<"type">>, <<"text">>},
-        {<<"value">>, Title}
-      ]},
-      {<<"description">>, [
-        {<<"type">>, <<"text">>},
-        {<<"value">>, Description}
-      ]},
-      {<<"retail">>, [
-        {<<"type">>, <<"currency">>},
-        {<<"value">>, Retail}
-      ]},
-      {<<"shipping">>, [
-        {<<"type">>, <<"currency">>},
-        {<<"value">>, Shipping}
-      ]},
-      {<<"currency">>, [
-        {<<"type">>, <<"select">>},
-        {<<"value">>, Currency},
-        {<<"options">>, [
-          [{<<"value">>, <<"USD">>}]
+    {<<"update">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"PUT">>},
+      {<<"input">>, [
+        {<<"title">>, [
+          {<<"type">>, <<"text">>},
+          {<<"value">>, Title}
+        ]},
+        {<<"description">>, [
+          {<<"type">>, <<"text">>},
+          {<<"value">>, Description}
+        ]},
+        {<<"retail">>, [
+          {<<"type">>, <<"currency">>},
+          {<<"value">>, Retail}
+        ]},
+        {<<"min-price">>, [
+          {<<"type">>, <<"currency">>},
+          {<<"value">>, MinPrice}
+        ]},
+        {<<"shipping">>, [
+          {<<"type">>, <<"currency">>},
+          {<<"value">>, Shipping}
+        ]},
+        {<<"currency">>, [
+          {<<"type">>, <<"select">>},
+          {<<"value">>, Currency},
+          {<<"options">>, [
+            [{<<"value">>, <<"USD">>}]
+          ]}
+        ]},
+        {<<"images">>, [
+          {<<"type">>, <<"url">>},
+          {<<"value">>, Images}
+        ]},
+        {<<"thumbnail">>, [
+          {<<"type">>, <<"select">>},
+          {<<"value">>, Thumbnail},
+          {<<"options">>, Images}
         ]}
-      ]},
-      {<<"images">>, [
-        {<<"type">>, <<"url">>},
-        {<<"value">>, Images}
-      ]},
-      {<<"thumbnail">>, [
-        {<<"type">>, <<"select">>},
-        {<<"value">>, Thumbnail},
-        {<<"options">>, Images}
       ]}
     ]}
   ]),
