@@ -9,8 +9,12 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 list(Req, State) ->
-  Categories = flokk_category:list(),
-  {Categories, Req, State}.
+  case flokk_category:list() of
+    {ok, Categories} ->
+      {Categories, Req, State};
+    {error, _} ->
+      {error, 500, Req}
+  end.
 
 body(Categories, Req, State) ->
   Body = [

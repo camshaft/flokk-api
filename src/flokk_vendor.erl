@@ -1,4 +1,4 @@
--module (flokk_category).
+-module (flokk_vendor).
 
 %% API.
 -export([start_link/1]).
@@ -20,7 +20,7 @@
 -export([code_change/3]).
 
 %% Bucket name.
--define(BUCKET, <<"fk_category">>).
+-define(BUCKET, <<"fk_vendor">>).
 
 %% API.
 
@@ -39,11 +39,11 @@ list() ->
 read(ID) ->
   gen_server:call(?MODULE, {read, ID}).
 
-create(Category) ->
-  gen_server:call(?MODULE, {create, Category}).
+create(Vendor) ->
+  gen_server:call(?MODULE, {create, Vendor}).
 
-update(ID, Category) ->
-  gen_server:call(?MODULE, {update, ID, Category}).
+update(ID, Vendor) ->
+  gen_server:call(?MODULE, {update, ID, Vendor}).
 
 delete(ID) ->
   gen_server:call(?MODULE, {delete, ID}).
@@ -62,29 +62,24 @@ handle_call(stop, _, DB) ->
 handle_call(list, _, DB) ->
   % Response = DB:list(?BUCKET),
   Response = [
-    {<<"living-room">>, [
-      {<<"title">>, <<"Living Room">>}
+    {<<"scott-n-dave">>, [
+      {<<"title">>, <<"Scott 'n Dave">>}
     ]},
-    {<<"bathroom">>, [
-      {<<"title">>, <<"Bathroom">>}
-    ]},
-    {<<"kitchen">>, [
-      {<<"title">>, <<"Kitchen">>}
-    ]},
-    {<<"accessories">>, [
-      {<<"title">>, <<"Accessories">>}
+    {<<"wicked-wicker">>, [
+      {<<"title">>, <<"Wicked Wicker">>}
     ]}
   ],
   {reply, {ok, Response}, DB};
-handle_call({read, ID}, _, DB) ->
+handle_call({read, _ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
-    {<<"title">>, ID}
+    {<<"title">>, <<"Scott 'n Dave">>},
+    {<<"description">>, <<"We specialize in lame prints">>}
   ],
   {reply, {ok, Response}, DB};
 handle_call({create, _Category}, _, DB) ->
   % Response = DB:post(?BUCKET, Category),
-  Response = <<"new-category-id">>,
+  Response = <<"new-vendor-id">>,
   {reply, {ok, Response}, DB};
 handle_call({update, _ID, _Category}, _, DB) ->
   % Response = DB:put(?BUCKET, ID, Category),

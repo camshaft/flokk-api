@@ -9,8 +9,12 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 list(Req, State) ->
-  Items = flokk_item:list(),
-  {Items, Req, State}.
+  case flokk_item:list() of
+    {ok, Items} ->
+      {Items, Req, State};
+    {error, _} ->
+      {error, 500, Req}
+  end.
 
 body(Items, Req, State) ->
   Body = [

@@ -32,5 +32,9 @@
 
   {"/vendors[/:id]", flokk_resource, [
     {resource, flokk_vendor}
+  ]},
+  {"/vendors/:id/items", flokk_resource, [
+    {resource, flokk_vendor_items},
+    {bare, true}
   ]}
 ]}.

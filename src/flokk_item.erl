@@ -58,7 +58,7 @@ handle_call(stop, _, DB) ->
 handle_call(list, _, DB) ->
   % Response = DB:list(?BUCKET),
   Response = [],
-  {reply, Response, DB};
+  {reply, {ok, Response}, DB};
 handle_call({read, _ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
