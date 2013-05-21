@@ -165,9 +165,10 @@ to_json(Req, State = #state{handler = Handler, id = ID, data = Data}) ->
   format_json(Handler:body(ID, Data, Req, State), Handler).
 
 format_json({Body, Req, State}, Handler) ->
-  {Url, Req} = cowboy_req:url(Req),
+  {Path, Req} = cowboy_req:path(Req),
+  {QS, Req} = cowboy_req:qs(Req),
   JSON = jsx:encode([
-    {<<"href">>, Url},
+    {<<"href">>, flokk_util:resolve(<<Path/binary,"?",QS/binary>>, Req)},
     {<<"root">>, [
       {<<"href">>, flokk_util:resolve(<<>>,Req)}
     ]}
