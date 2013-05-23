@@ -3,4 +3,4 @@
 erlang="./otp/bin/erl"
 ! [ -f "$erlang" ] && erlang="erl"
 
-$erlang -config priv/app.config +K true +A8 -smp auto -name flokk@`hostname` -pa ebin -pa deps/*/ebin -env ERL_LIBS deps -noshell -noinput -s flokk
+$erlang -config priv/app.config +K true +A16 -smp auto -name flokk@`hostname` -pa ebin -pa deps/*/ebin -env ERL_LIBS deps -noshell -noinput -s flokk
