@@ -98,7 +98,20 @@ handle_call({items, _ID}, _, DB) ->
   Response = [
     {<<"1">>, [{<<"title">>, <<"Lame Print 1">>}]},
     {<<"2">>, [{<<"title">>, <<"Lame Print 2">>}]},
-    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]}
+    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]},
+    {<<"4">>, [{<<"title">>, <<"Lame Print 4">>}]},
+    {<<"5">>, [{<<"title">>, <<"Lame Print 5">>}]},
+    {<<"6">>, [{<<"title">>, <<"Lame Print 6">>}]},
+    {<<"7">>, [{<<"title">>, <<"Lame Print 7">>}]},
+    {<<"8">>, [{<<"title">>, <<"Lame Print 8">>}]},
+    {<<"9">>, [{<<"title">>, <<"Lame Print 9">>}]},
+    {<<"10">>, [{<<"title">>, <<"Lame Print 10">>}]},
+    {<<"11">>, [{<<"title">>, <<"Lame Print 11">>}]},
+    {<<"12">>, [{<<"title">>, <<"Lame Print 12">>}]},
+    {<<"13">>, [{<<"title">>, <<"Lame Print 13">>}]},
+    {<<"14">>, [{<<"title">>, <<"Lame Print 14">>}]},
+    {<<"15">>, [{<<"title">>, <<"Lame Print 15">>}]},
+    {<<"16">>, [{<<"title">>, <<"Lame Print 16">>}]}
   ],
   {reply, {ok, Response}, DB};
 handle_call(ping, _, DB) ->
