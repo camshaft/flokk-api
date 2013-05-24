@@ -22,10 +22,10 @@ call(Req, State) ->
 body(Items, Req, State) ->
   Body = [
     {<<"items">>, [
-      [[
+      [
         {<<"href">>, flokk_util:resolve([<<"items">>,ID], Req)},
         {<<"title">>, proplists:get_value(<<"title">>, Item)}
-      ] || {ID, Item} <- Items]
+      ] || {ID, Item} <- Items
     ]}
   ],
 
