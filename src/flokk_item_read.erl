@@ -36,6 +36,9 @@ body(ID, Item, Req, State) ->
     {<<"retail">>, Retail},
     {<<"shipping">>, Shipping},
     {<<"currency">>, Currency},
+    {<<"sale">>, [
+      {<<"href">>, flokk_util:resolve([<<"items">>,ID,<<"sale">>], Req)}
+    ]},
     {<<"category">>, [
       {<<"href">>, flokk_util:resolve([<<"categories">>,Category], Req)}
     ]},

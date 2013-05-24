@@ -9,6 +9,7 @@
 -export([create/1]).
 -export([update/2]).
 -export([delete/1]).
+-export([sale/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -46,6 +47,9 @@ update(ID, Item) ->
 
 delete(ID) ->
   gen_server:call(?MODULE, {delete, ID}).
+
+sale(ID) ->
+  gen_server:call(?MODULE, {sale, ID}).
 
 
 %% gen_server.
@@ -90,6 +94,17 @@ handle_call({update, _ID, _Item}, _, DB) ->
 handle_call({delete, _ID}, _, DB) ->
   % Response = DB:delete(?BUCKET, ID),
   {reply, ok, DB};
+handle_call({sale, ID}, _, DB) ->
+  % Response = DB:get(?BUCKET, ID),
+  {Mega, Sec, _Micro} = now(),
+  Timestamp = Mega * 1000000 + Sec + random:uniform(3600),
+  Sale = case ID of
+    <<"3">> -> [];
+    <<"5">> -> [];
+    <<"12">> -> [];
+    _ -> [{<<"ending">>, Timestamp}]
+  end,
+  {reply, {ok, Sale}, DB};
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
 handle_call(_, _, DB) ->

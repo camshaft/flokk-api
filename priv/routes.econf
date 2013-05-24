@@ -15,11 +15,11 @@
   {"/items[/:id]", flokk_resource, [
     {resource, flokk_item}
   ]},
-  {"/items/:item/categories[/:id]", flokk_resource, [
-    {resource, flokk_item_category}
+  {"/items/:id/sale", flokk_resource, [
+    {resource, flokk_item_sale},
+    {bare, true}
   ]},
-
-  {"/items/:item/watchers[/:id]", flokk_resource, [
+  {"/items/:id/watchers", flokk_resource, [
     {resource, flokk_watcher}
   ]},
 
