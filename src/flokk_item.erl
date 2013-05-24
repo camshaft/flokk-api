@@ -69,13 +69,13 @@ handle_call({read, _ID}, _, DB) ->
     {<<"vendor_title">>, <<"Scott n' Dave">>},
     {<<"retail">>, 4999},
     {<<"shipping">>, 299},
-    {<<"thumbnail">>, <<"http://i41.tinypic.com/5kq5j5.jpg">>},
+    {<<"thumbnail">>, <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>},
     {<<"images">>, [
-      <<"http://i41.tinypic.com/5kq5j5.jpg">>,
-      <<"http://i47.tinypic.com/mack5g.jpg">>,
-      <<"http://i46.tinypic.com/17s8pw.jpg">>,
-      <<"http://i45.tinypic.com/2dlmzyw.jpg">>,
-      <<"http://i47.tinypic.com/259bsqd.jpg">>
+      <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>,
+      <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>,
+      <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>,
+      <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>,
+      <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>
     ]}
   ],
   {reply, {ok, Response}, DB};
