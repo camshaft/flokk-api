@@ -41,7 +41,8 @@ body(Categories, Req, State) ->
 format_category(ID, Category, Req)->
   [
     {<<"href">>, flokk_util:resolve([<<"categories">>, ID], Req)},
-    {<<"title">>, proplists:get_value(<<"title">>, Category)}
+    {<<"title">>, proplists:get_value(<<"title">>, Category)},
+    {<<"items">>, flokk_util:resolve([<<"categories">>,ID,<<"items">>], Req)}
   ].
 
 ttl(Req, State)->
