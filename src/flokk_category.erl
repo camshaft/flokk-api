@@ -71,6 +71,9 @@ handle_call(list, _, DB) ->
     {<<"kitchen">>, [
       {<<"title">>, <<"Kitchen">>}
     ]},
+    {<<"art">>, [
+      {<<"title">>, <<"Art">>}
+    ]},
     {<<"accessories">>, [
       {<<"title">>, <<"Accessories">>}
     ]}
