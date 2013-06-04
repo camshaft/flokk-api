@@ -113,8 +113,7 @@ handle_call({items, _ID}, _, DB) ->
     {<<"12">>, [{<<"title">>, <<"Lame Print 12">>}]},
     {<<"13">>, [{<<"title">>, <<"Lame Print 13">>}]},
     {<<"14">>, [{<<"title">>, <<"Lame Print 14">>}]},
-    {<<"15">>, [{<<"title">>, <<"Lame Print 15">>}]},
-    {<<"16">>, [{<<"title">>, <<"Lame Print 16">>}]}
+    {<<"15">>, [{<<"title">>, <<"Lame Print 15">>}]}
   ],
   {reply, {ok, Response}, DB};
 handle_call(ping, _, DB) ->

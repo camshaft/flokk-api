@@ -23,10 +23,21 @@
 -define(BUCKET, <<"fk_item">>).
 
 -define (IMAGES, [
-  <<"https://s3.amazonaws.com/flokk-images/tentacles.jpg">>,
   <<"https://s3.amazonaws.com/flokk-images/travel-signs.jpg">>,
   <<"https://s3.amazonaws.com/flokk-images/octopus.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>
+  <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/camera.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/duvet.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/shark.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/lamp.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/grow-up.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/fearless.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/pencil.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/cleaner.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/juicer.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/be-nice.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/bowls.jpg">>,
+  <<"https://s3.amazonaws.com/flokk-images/tentacles.jpg">>
 ]).
 
 %% API.
