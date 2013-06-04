@@ -40,14 +40,21 @@ priv_dir(Mod) ->
 
 resolve(Parts, Req) when is_list(Parts) ->
   resolve(binary_join(Parts, <<"/">>), Req);
-resolve(<<"/">>, Req) ->
-  {Base, Req} = cowboy_req:meta(base, Req),
-  <<Base/binary, "/">>;
 resolve(<<"/",Path/binary>>, Req) ->
   resolve(Path, Req);
 resolve(Path, Req) ->
   {Base, Req} = cowboy_req:meta(base, Req),
-  <<Base/binary, "/", Path/binary>>.
+  join_with_base(Base, Path).
+
+join_with_base(Base, <<"/">>) ->
+  join_with_base(Base, <<>>);
+join_with_base(Base, Path) ->
+  case binary:last(Base) of
+    47 -> %% <<"/">>
+      <<Base/binary, Path/binary>>;
+    _ ->
+      <<Base/binary, "/", Path/binary>>
+  end.
 
 binary_join([], _Sep) ->
   <<>>;
