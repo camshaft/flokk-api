@@ -63,10 +63,36 @@ handle_call(list, _, DB) ->
   % Response = DB:list(?BUCKET),
   Response = [
     {<<"scott-n-dave">>, [
-      {<<"title">>, <<"Scott 'n Dave">>}
+      {<<"title">>, <<"Scott 'n Dave">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
     ]},
-    {<<"wicked-wicker">>, [
-      {<<"title">>, <<"Wicked Wicker">>}
+    {<<"ikea">>, [
+      {<<"title">>, <<"IKEA">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
+    ]},
+    {<<"scott-n-dave">>, [
+      {<<"title">>, <<"Scott 'n Dave">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
+    ]},
+    {<<"ikea">>, [
+      {<<"title">>, <<"IKEA">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
+    ]},
+    {<<"scott-n-dave">>, [
+      {<<"title">>, <<"Scott 'n Dave">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
+    ]},
+    {<<"ikea">>, [
+      {<<"title">>, <<"IKEA">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
+    ]},
+    {<<"scott-n-dave">>, [
+      {<<"title">>, <<"Scott 'n Dave">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
+    ]},
+    {<<"ikea">>, [
+      {<<"title">>, <<"IKEA">>},
+      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
     ]}
   ],
   {reply, {ok, Response}, DB};
@@ -74,7 +100,8 @@ handle_call({read, _ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
     {<<"name">>, <<"Scott 'n Dave">>},
-    {<<"description">>, <<"We specialize in lame prints">>}
+    {<<"description">>, <<"We specialize in lame prints">>},
+    {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
   ],
   {reply, {ok, Response}, DB};
 handle_call({create, _Category}, _, DB) ->
@@ -93,7 +120,11 @@ handle_call({items, _ID}, _, DB) ->
   Response = [
     {<<"1">>, [{<<"title">>, <<"Lame Print 1">>}]},
     {<<"2">>, [{<<"title">>, <<"Lame Print 2">>}]},
-    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]}
+    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]},
+    {<<"4">>, [{<<"title">>, <<"Lame Print 4">>}]},
+    {<<"5">>, [{<<"title">>, <<"Lame Print 5">>}]},
+    {<<"6">>, [{<<"title">>, <<"Lame Print 6">>}]},
+    {<<"7">>, [{<<"title">>, <<"Lame Print 7">>}]}
   ],
   {reply, {ok, Response}, DB};
 handle_call(ping, _, DB) ->

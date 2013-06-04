@@ -32,7 +32,8 @@ body(ID, Vendor, Req, State) ->
     {<<"email">>, Email},
     {<<"location">>, Location},
     {<<"logo">>, [
-      {<<"href">>, Logo}
+      {<<"src">>, Logo},
+      {<<"type">>, <<"image/jpg">>} %% TODO get file extension
     ]},
     {<<"makesOffer">>, [
       {<<"href">>, flokk_util:resolve([<<"vendors">>,ID,<<"items">>], Req)}

@@ -41,7 +41,8 @@ body(Vendors, Req, State) ->
 format_vendor(ID, Vendor, Req)->
   [
     {<<"href">>, flokk_util:resolve([<<"vendors">>, ID], Req)},
-    {<<"title">>, proplists:get_value(<<"title">>, Vendor)}
+    {<<"title">>, proplists:get_value(<<"title">>, Vendor)},
+    {<<"logo">>, proplists:get_value(<<"logo">>, Vendor)}
   ].
 
 ttl(Req, State)->
