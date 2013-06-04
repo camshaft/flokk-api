@@ -73,7 +73,7 @@ handle_call(list, _, DB) ->
 handle_call({read, _ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
-    {<<"title">>, <<"Scott 'n Dave">>},
+    {<<"name">>, <<"Scott 'n Dave">>},
     {<<"description">>, <<"We specialize in lame prints">>}
   ],
   {reply, {ok, Response}, DB};

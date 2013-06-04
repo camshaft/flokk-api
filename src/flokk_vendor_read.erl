@@ -17,11 +17,24 @@ read(ID, Req, State) ->
 
 body(ID, Vendor, Req, State) ->
   URL = flokk_util:resolve([<<"vendor">>,ID], Req),
-  Title = proplists:get_value(<<"title">>, Vendor, <<>>),
+  Name = proplists:get_value(<<"name">>, Vendor, <<>>),
+  Description = proplists:get_value(<<"description">>, Vendor, <<>>),
+  Email = proplists:get_value(<<"email">>, Vendor, <<>>),
+  Location = proplists:get_value(<<"location">>, Vendor, <<>>),
+  Logo = proplists:get_value(<<"logo">>, Vendor, <<>>),
 
   Body = [
-    {<<"title">>, Title},
-    {<<"items">>, [
+    {<<"profile">>, [
+      {<<"href">>, <<"http://alps.io/schema.org/Organization.xml">>}
+    ]},
+    {<<"name">>, Name},
+    {<<"description">>, Description},
+    {<<"email">>, Email},
+    {<<"location">>, Location},
+    {<<"logo">>, [
+      {<<"href">>, Logo}
+    ]},
+    {<<"makesOffer">>, [
       {<<"href">>, flokk_util:resolve([<<"vendors">>,ID,<<"items">>], Req)}
     ]}
   ],
@@ -31,9 +44,9 @@ body(ID, Vendor, Req, State) ->
     {<<"action">>, URL},
     {<<"method">>, <<"POST">>},
     {<<"input">>, [
-      {<<"title">>, [
+      {<<"name">>, [
         {<<"type">>, <<"text">>},
-        {<<"value">>, Title}
+        {<<"value">>, Name}
       ]}
     ]}
   ]),

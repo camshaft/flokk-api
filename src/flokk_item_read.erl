@@ -17,13 +17,14 @@ read(ID, Req, State) ->
 
 body(ID, Item, Req, State) ->
   URL = flokk_util:resolve([<<"items">>,ID], Req),
-  Title = proplists:get_value(<<"title">>, Item, <<>>),
+  Name = proplists:get_value(<<"name">>, Item, <<>>),
   Description = proplists:get_value(<<"description">>, Item, <<>>),
   Category = proplists:get_value(<<"category">>, Item, <<"1">>),
   Retail = proplists:get_value(<<"retail">>, Item, <<>>),
   MinPrice = proplists:get_value(<<"min-price">>, Item, 0),
   Shipping = proplists:get_value(<<"shipping">>, Item, 0),
   Currency = proplists:get_value(<<"currency">>, Item, <<"USD">>),
+  Keywords = proplists:get_value(<<"keywords">>, Item, []),
   VendorID = proplists:get_value(<<"vendor_id">>, Item, <<>>),
   VendorTitle = proplists:get_value(<<"vendor_title">>, Item, <<>>),
   Thumbnail = proplists:get_value(<<"thumbnail">>, Item, <<>>),
@@ -31,19 +32,23 @@ body(ID, Item, Req, State) ->
   _Options = proplists:get_value(<<"options">>, Item, []),
 
   Body = [
-    {<<"title">>, Title},
+    {<<"profile">>, [
+      {<<"href">>, <<"http://alps.io/schema.org/ItemPage.xml">>}
+    ]},
+    {<<"name">>, Name},
     {<<"description">>, Description},
     {<<"retail">>, Retail},
     {<<"shipping">>, Shipping},
     {<<"currency">>, Currency},
     {<<"sku">>, ID},
-    {<<"sale">>, [
+    {<<"keywords">>, Keywords},
+    {<<"offers">>, [
       {<<"href">>, flokk_util:resolve([<<"items">>,ID,<<"sale">>], Req)}
     ]},
     {<<"category">>, [
       {<<"href">>, flokk_util:resolve([<<"categories">>,Category], Req)}
     ]},
-    {<<"vendor">>, [
+    {<<"publisher">>, [
       {<<"href">>, flokk_util:resolve([<<"vendors">>,VendorID], Req)},
       {<<"title">>, VendorTitle}
     ]},
@@ -64,9 +69,9 @@ body(ID, Item, Req, State) ->
       {<<"action">>, URL},
       {<<"method">>, <<"PUT">>},
       {<<"input">>, [
-        {<<"title">>, [
+        {<<"name">>, [
           {<<"type">>, <<"text">>},
-          {<<"value">>, Title}
+          {<<"value">>, Name}
         ]},
         {<<"description">>, [
           {<<"type">>, <<"text">>},
