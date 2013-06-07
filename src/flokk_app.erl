@@ -29,6 +29,7 @@ start(_Type, _Args) ->
     {middlewares, [
       flokk_middleware_empty_favicon,
       flokk_middleware_base,
+      flokk_middleware_request_id,
       flokk_auth,
       cowboy_router,
       cowboy_handler,
