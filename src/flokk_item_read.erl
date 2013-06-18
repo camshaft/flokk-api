@@ -27,8 +27,8 @@ body(ID, Item, Req, State) ->
   Keywords = proplists:get_value(<<"keywords">>, Item, []),
   VendorID = proplists:get_value(<<"vendor_id">>, Item, <<>>),
   VendorTitle = proplists:get_value(<<"vendor_title">>, Item, <<>>),
+  Image = proplists:get_value(<<"image">>, Item, <<>>),
   Thumbnail = proplists:get_value(<<"thumbnail">>, Item, <<>>),
-  Images = proplists:get_value(<<"images">>, Item, []),
   _Options = proplists:get_value(<<"options">>, Item, []),
 
   Body = [
@@ -52,15 +52,13 @@ body(ID, Item, Req, State) ->
       {<<"href">>, flokk_util:resolve([<<"vendors">>,VendorID], Req)},
       {<<"title">>, VendorTitle}
     ]},
-    {<<"thumbnail">>, [
-      {<<"src">>, Thumbnail},
+    {<<"image">>, [
+      {<<"src">>, Image},
       {<<"type">>, <<"image/jpeg">>} %% TODO should we store this here or just get it from the extension
     ]},
-    {<<"images">>, [
-      [
-        {<<"src">>, Image},
-        {<<"type">>, <<"image/jpeg">>}
-      ] || Image <- Images
+    {<<"thumbnail">>, [
+      {<<"src">>, Thumbnail},
+      {<<"type">>, <<"image/jpeg">>}
     ]}
   ],
 
@@ -96,14 +94,9 @@ body(ID, Item, Req, State) ->
             [{<<"value">>, <<"USD">>}]
           ]}
         ]},
-        {<<"images">>, [
+        {<<"image">>, [
           {<<"type">>, <<"url">>},
-          {<<"value">>, Images}
-        ]},
-        {<<"thumbnail">>, [
-          {<<"type">>, <<"select">>},
-          {<<"value">>, Thumbnail},
-          {<<"options">>, Images}
+          {<<"value">>, Image}
         ]}
         %% TODO have options creation form
         % {<<"options">>, [

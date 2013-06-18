@@ -83,7 +83,7 @@ handle_call(list, _, DB) ->
   {reply, {ok, Response}, DB};
 handle_call({read, ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
-  Thumbnail = lists:nth((list_to_integer(binary_to_list(ID)) rem length(?IMAGES))+1, ?IMAGES),
+  Image = lists:nth((list_to_integer(binary_to_list(ID)) rem length(?IMAGES))+1, ?IMAGES),
   Response = [
     {<<"name">>, <<"Lame Print">>},
     {<<"description">>, <<"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehen- derit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.">>},
@@ -92,14 +92,8 @@ handle_call({read, ID}, _, DB) ->
     {<<"vendor_title">>, <<"Scott n' Dave">>},
     {<<"retail">>, 4999},
     {<<"shipping">>, 299},
-    {<<"thumbnail">>, Thumbnail},
-    {<<"images">>, [
-      Thumbnail,
-      Thumbnail,
-      Thumbnail,
-      Thumbnail,
-      Thumbnail
-    ]}
+    {<<"thumbnail">>, Image},
+    {<<"image">>, Image}
   ],
   {reply, {ok, Response}, DB};
 handle_call({create, _Item}, _, DB) ->

@@ -28,7 +28,7 @@ body(Req, State) ->
     undefined -> Body;
     UserID ->
       [
-        {<<"profile">>, [
+        {<<"account">>, [
           {<<"href">>, flokk_util:resolve([<<"users">>,UserID], Req)}
         ]}
       |Body]
