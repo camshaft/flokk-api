@@ -30,7 +30,6 @@
 -record (state, {
   method :: binary(),
   id :: binary(),
-  secret :: proplist(),
   data :: term(),
   body :: proplist(),
   query :: proplist(),
@@ -50,7 +49,6 @@ rest_init(Req, Opts) ->
   {ID, Req} = cowboy_req:binding(id, Req),
   Resource = proplists:get_value(resource, Opts),
   Bare = proplists:get_value(bare, Opts, false),
-  {Secret, Req} = cowboy_req:meta(token_secret, Req),
 
   Command = case {Method, ID, Bare} of
     {_, _, true} -> call;
@@ -74,8 +72,7 @@ rest_init(Req, Opts) ->
         resource=Resource,
         command=Command,
         handler=Handler,
-        handler_state=HandlerState,
-        secret=Secret
+        handler_state=HandlerState
       }};
     _ = Error ->
       Error
@@ -94,49 +91,28 @@ allowed_methods(Req, State) ->
   {[<<"GET">>, <<"POST">>, <<"PUT">>, <<"DELETE">>,
     <<"HEAD">>, <<"OPTIONS">>], Req, State}.
 
-is_authorized(Req, State = #state{secret = Secret}) ->
+is_authorized(Req, State = #state{handler = Handler}) ->
   lager:debug("resource:is_authorized"),
-  case cowboy_req:parse_header(<<"authorization">>, Req) of
-    {ok, {<<"bearer">>, AccessToken}, Req2} ->
-      try simple_secrets:unpack(AccessToken, Secret) of
-        false ->
-          lager:debug("Invalid bearer ~p",[AccessToken]),
-          {{false, <<"Bearer">>}, Req2, State};
-        {User} ->
-          UserId = proplists:get_value(<<"u">>, User),
-          Req3 = cowboy_req:set_meta(user_id, UserId, Req2),
-
-          Scopes = proplists:get_value(<<"s">>, User, []),
-          Req4 = cowboy_req:set_meta(scopes, Scopes, Req3),
-
-          authorize_scope(Req4, State);
-        _ ->
-          {{false, <<"Bearer">>}, Req, State}
-      catch Class:Exc ->
-        lager:debug("Invalid bearer ~p:~p",[Class,Exc]),
-        {{false, <<"Bearer">>}, Req, State}
-      end;
-    _ ->
-      {true, Req, State}
-  end.
-
-authorize_scope(Req, State = #state{handler = Handler}) ->
-  lager:debug("resource:authorize_scope"),
-  case erlang:function_exported(Handler, scope, 2) of
+  case cowboy_resource_owner:failed_authentication(Req) of
     true ->
-      case Handler:scope(Req, State) of
-        {Scope, Req2, State2} ->
-          case flokk_auth:authorize(Scope, Req2) of
-            true ->
-              {true, Req2, State2};
-            false ->
-              {{false, <<"Bearer">>}, Req2, State}
+      {{false, <<"Bearer">>}, Req, State};
+    _ ->
+      case erlang:function_exported(Handler, scope, 2) of
+        true ->
+          case Handler:scope(Req, State) of
+            {Scope, Req2, State2} ->
+              case cowboy_resource_owner:is_authorized(Scope, Req2) of
+                true ->
+                  {true, Req2, State2};
+                false ->
+                  {{false, <<"Bearer">>}, Req2, State}
+              end;
+            _ ->
+              {{false, <<"Bearer">>}, Req, State}
           end;
-        _ ->
-          {{false, <<"Bearer">>}, Req, State}
-      end;
-    false ->
-      {true, Req, State}
+        false ->
+          {true, Req, State}
+      end
   end.
 
 content_types_provided(Req, State) ->
@@ -172,9 +148,9 @@ format_json({Body, Req, State}, Handler) ->
     QS -> <<Path/binary,"?",QS/binary>>
   end,
   JSON = jsx:encode([
-    {<<"href">>, flokk_util:resolve(URL, Req)},
+    {<<"href">>, cowboy_base:resolve(URL, Req)},
     {<<"root">>, [
-      {<<"href">>, flokk_util:resolve(<<>>,Req)}
+      {<<"href">>, cowboy_base:resolve(<<>>,Req)}
     ]}
   |Body]),
   case erlang:function_exported(Handler, ttl, 2) of

@@ -18,4 +18,4 @@ delete(ID, Req, State) ->
   {ok, Req, State}.
 
 location(Req, State) ->
-  {flokk_util:resolve(<<"item">>, Req), Req, State}.
+  {cowboy_base:resolve(<<"item">>, Req), Req, State}.

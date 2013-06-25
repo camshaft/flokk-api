@@ -16,12 +16,12 @@ read(ID, Req, State) ->
   end.
 
 body(ID, Vendor, Req, State) ->
-  URL = flokk_util:resolve([<<"vendor">>,ID], Req),
-  Name = proplists:get_value(<<"name">>, Vendor, <<>>),
-  Description = proplists:get_value(<<"description">>, Vendor, <<>>),
-  Email = proplists:get_value(<<"email">>, Vendor, <<>>),
-  Location = proplists:get_value(<<"location">>, Vendor, <<>>),
-  Logo = proplists:get_value(<<"logo">>, Vendor, <<>>),
+  URL = cowboy_base:resolve([<<"vendor">>,ID], Req),
+  Name = fast_key:get(<<"name">>, Vendor, <<>>),
+  Description = fast_key:get(<<"description">>, Vendor, <<>>),
+  Email = fast_key:get(<<"email">>, Vendor, <<>>),
+  Location = fast_key:get(<<"location">>, Vendor, <<>>),
+  Logo = fast_key:get(<<"logo">>, Vendor, <<>>),
 
   Body = [
     {<<"profile">>, [
@@ -36,12 +36,12 @@ body(ID, Vendor, Req, State) ->
       {<<"type">>, <<"image/jpg">>} %% TODO get file extension
     ]},
     {<<"makesOffer">>, [
-      {<<"href">>, flokk_util:resolve([<<"vendors">>,ID,<<"items">>], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"vendors">>,ID,<<"items">>], Req)}
     ]}
   ],
 
   %% TODO also verify that they have access to this vendor profile
-  Body1 = flokk_auth:build(<<"vendor.update">>, Req, Body, [
+  Body1 = cowboy_resource_builder:authorize(<<"vendor.update">>, Req, Body, [
     {<<"action">>, URL},
     {<<"method">>, <<"POST">>},
     {<<"input">>, [
@@ -53,7 +53,7 @@ body(ID, Vendor, Req, State) ->
   ]),
 
   %% TODO also verify that they have access to this vendor profile
-  Body2 = flokk_auth:build(<<"vendor.delete">>, Req, Body1, [
+  Body2 = cowboy_resource_builder:authorize(<<"vendor.delete">>, Req, Body1, [
     {<<"action">>, URL},
     {<<"method">>, <<"DELETE">>}
   ]),

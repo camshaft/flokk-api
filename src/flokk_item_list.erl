@@ -24,9 +24,9 @@ body(Items, Req, State) ->
   ],
 
   %% Expose the create form
-  Body1 = flokk_auth:build(<<"item.create">>, Req, Body, [
+  Body1 = cowboy_resource_builder:authorize(<<"item.create">>, Req, Body, [
     {<<"create">>, [
-      {<<"action">>, flokk_util:resolve(<<"items">>, Req)},
+      {<<"action">>, cowboy_base:resolve(<<"items">>, Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
         {<<"title">>, [
@@ -40,8 +40,8 @@ body(Items, Req, State) ->
 
 format_item(ID, Item, Req)->
   [
-    {<<"href">>, flokk_util:resolve([<<"items">>, ID], Req)},
-    {<<"title">>, proplists:get_value(<<"title">>, Item)}
+    {<<"href">>, cowboy_base:resolve([<<"items">>, ID], Req)},
+    {<<"title">>, fast_key:get(<<"title">>, Item)}
   ].
 
 ttl(Req, State)->

@@ -16,20 +16,20 @@ read(ID, Req, State) ->
   end.
 
 body(ID, Item, Req, State) ->
-  URL = flokk_util:resolve([<<"items">>,ID], Req),
-  Name = proplists:get_value(<<"name">>, Item, <<>>),
-  Description = proplists:get_value(<<"description">>, Item, <<>>),
-  Category = proplists:get_value(<<"category">>, Item, <<"1">>),
-  Retail = proplists:get_value(<<"retail">>, Item, <<>>),
-  MinPrice = proplists:get_value(<<"min-price">>, Item, 0),
-  Shipping = proplists:get_value(<<"shipping">>, Item, 0),
-  Currency = proplists:get_value(<<"currency">>, Item, <<"USD">>),
-  Keywords = proplists:get_value(<<"keywords">>, Item, []),
-  VendorID = proplists:get_value(<<"vendor_id">>, Item, <<>>),
-  VendorTitle = proplists:get_value(<<"vendor_title">>, Item, <<>>),
-  Image = proplists:get_value(<<"image">>, Item, <<>>),
-  Thumbnail = proplists:get_value(<<"thumbnail">>, Item, <<>>),
-  _Options = proplists:get_value(<<"options">>, Item, []),
+  URL = cowboy_base:resolve([<<"items">>,ID], Req),
+  Name = fast_key:get(<<"name">>, Item, <<>>),
+  Description = fast_key:get(<<"description">>, Item, <<>>),
+  Category = fast_key:get(<<"category">>, Item, <<"1">>),
+  Retail = fast_key:get(<<"retail">>, Item, <<>>),
+  MinPrice = fast_key:get(<<"min-price">>, Item, 0),
+  Shipping = fast_key:get(<<"shipping">>, Item, 0),
+  Currency = fast_key:get(<<"currency">>, Item, <<"USD">>),
+  Keywords = fast_key:get(<<"keywords">>, Item, []),
+  VendorID = fast_key:get(<<"vendor_id">>, Item, <<>>),
+  VendorTitle = fast_key:get(<<"vendor_title">>, Item, <<>>),
+  Image = fast_key:get(<<"image">>, Item, <<>>),
+  Thumbnail = fast_key:get(<<"thumbnail">>, Item, <<>>),
+  _Options = fast_key:get(<<"options">>, Item, []),
 
   Body = [
     {<<"profile">>, [
@@ -43,13 +43,13 @@ body(ID, Item, Req, State) ->
     {<<"sku">>, ID},
     {<<"keywords">>, Keywords},
     {<<"offers">>, [
-      {<<"href">>, flokk_util:resolve([<<"items">>,ID,<<"sale">>], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"items">>,ID,<<"sale">>], Req)}
     ]},
     {<<"category">>, [
-      {<<"href">>, flokk_util:resolve([<<"categories">>,Category], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"categories">>,Category], Req)}
     ]},
     {<<"publisher">>, [
-      {<<"href">>, flokk_util:resolve([<<"vendors">>,VendorID], Req)},
+      {<<"href">>, cowboy_base:resolve([<<"vendors">>,VendorID], Req)},
       {<<"title">>, VendorTitle}
     ]},
     {<<"image">>, [
@@ -62,7 +62,7 @@ body(ID, Item, Req, State) ->
     ]}
   ],
 
-  Body1 = flokk_auth:build(<<"item.update">>, Req, Body, [
+  Body1 = cowboy_resource_builder:authorize(<<"item.update">>, Req, Body, [
     {<<"update">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"PUT">>},
@@ -106,7 +106,7 @@ body(ID, Item, Req, State) ->
     ]}
   ]),
 
-  Body2 = flokk_auth:build(<<"item.delete">>, Req, Body1, [
+  Body2 = cowboy_resource_builder:authorize(<<"item.delete">>, Req, Body1, [
     {<<"action">>, URL},
     {<<"method">>, <<"DELETE">>}
   ]),

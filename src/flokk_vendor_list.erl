@@ -24,9 +24,9 @@ body(Vendors, Req, State) ->
   ],
 
   %% Expose the create form
-  Body1 = flokk_auth:build(<<"vendor.create">>, Req, Body, [
+  Body1 = cowboy_resource_builder:authorize(<<"vendor.create">>, Req, Body, [
     {<<"create">>, [
-      {<<"action">>, flokk_util:resolve(<<"vendors">>, Req)},
+      {<<"action">>, cowboy_base:resolve(<<"vendors">>, Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
         {<<"title">>, [
@@ -40,9 +40,9 @@ body(Vendors, Req, State) ->
 
 format_vendor(ID, Vendor, Req)->
   [
-    {<<"href">>, flokk_util:resolve([<<"vendors">>, ID], Req)},
-    {<<"title">>, proplists:get_value(<<"title">>, Vendor)},
-    {<<"logo">>, proplists:get_value(<<"logo">>, Vendor)}
+    {<<"href">>, cowboy_base:resolve([<<"vendors">>, ID], Req)},
+    {<<"title">>, fast_key:get(<<"title">>, Vendor)},
+    {<<"logo">>, fast_key:get(<<"logo">>, Vendor)}
   ].
 
 ttl(Req, State)->

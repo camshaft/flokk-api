@@ -9,11 +9,12 @@
 %% API.
 
 start(_Type, _Args) ->
-  configure(flokk_util:env("ERL_ENV", "production")),
-  Port = list_to_integer(flokk_util:env("PORT", "5000")),
+  configure(simple_env:get("ERL_ENV", "production")),
+  Port = simple_env:get_integer("PORT", "5000"),
 
-  Secret = simple_secrets:init(list_to_binary(flokk_util:env("ACCESS_TOKEN_KEY"))),
-  ScopeEnum = jsx:decode(list_to_binary(flokk_util:env("SCOPES", "{}"))),
+  Secret = simple_secrets:init(simple_env:get_binary("ACCESS_TOKEN_KEY")),
+  %% TODO split
+  ScopeEnum = simple_env:get_binary("SCOPES", []),
 
   Routes = flokk_util:load_dispatch(?MODULE),
 
@@ -21,16 +22,17 @@ start(_Type, _Args) ->
     {compress, true},
     {env, [
       {dispatch, cowboy_router:compile(Routes)},
-      {token_secret, Secret},
-      {scopes_enum, ScopeEnum}
+      {ss_token_secret, Secret},
+      {ss_scopes_enum, ScopeEnum},
+      {token_handler, cowboy_resource_owner_simple_secrets}
     ]},
     {onrequest, fun flokk_hook:start/1},
     {onresponse, fun flokk_hook:terminate/4},
     {middlewares, [
-      flokk_middleware_empty_favicon,
-      flokk_middleware_base,
-      flokk_middleware_request_id,
-      flokk_auth,
+      cowboy_empty_favicon,
+      cowboy_base,
+      cowboy_request_id,
+      cowboy_resource_owner,
       cowboy_router,
       cowboy_handler,
       flokk_middleware_pubsub

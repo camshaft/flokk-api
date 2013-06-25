@@ -10,15 +10,15 @@ init(Req, _Opts) ->
 body(Req, State) ->
   Body = [
     % {<<"sales">>, [
-    %   {<<"href">>, flokk_util:resolve(<<"sales">>, Req)},
+    %   {<<"href">>, cowboy_base:resolve(<<"sales">>, Req)},
     %   {<<"title">>, <<"Sales">>}
     % ]},
     {<<"categories">>, [
-      {<<"href">>, flokk_util:resolve(<<"categories">>, Req)},
+      {<<"href">>, cowboy_base:resolve(<<"categories">>, Req)},
       {<<"title">>, <<"Categories">>}
     ]},
     {<<"vendors">>, [
-      {<<"href">>, flokk_util:resolve(<<"vendors">>, Req)},
+      {<<"href">>, cowboy_base:resolve(<<"vendors">>, Req)},
       {<<"title">>, <<"Vendors">>}
     ]}
   ],
@@ -29,7 +29,7 @@ body(Req, State) ->
     UserID ->
       [
         {<<"account">>, [
-          {<<"href">>, flokk_util:resolve([<<"users">>,UserID], Req)}
+          {<<"href">>, cowboy_base:resolve([<<"users">>,UserID], Req)}
         ]}
       |Body]
   end,

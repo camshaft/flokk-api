@@ -23,8 +23,8 @@ body(Items, Req, State) ->
   Body = [
     {<<"items">>, [
       [
-        {<<"href">>, flokk_util:resolve([<<"items">>,ID], Req)},
-        {<<"title">>, proplists:get_value(<<"title">>, Item)}
+        {<<"href">>, cowboy_base:resolve([<<"items">>,ID], Req)},
+        {<<"title">>, fast_key:get(<<"title">>, Item)}
       ] || {ID, Item} <- Items
     ]}
   ],

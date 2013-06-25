@@ -27,4 +27,4 @@ create(Body, Req, State) ->
   end.
 
 location(ID, Req, State) ->
-  {flokk_util:resolve([<<"vendors">>, ID], Req), Req, State}.
+  {cowboy_base:resolve([<<"vendors">>, ID], Req), Req, State}.

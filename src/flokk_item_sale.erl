@@ -20,12 +20,12 @@ call(Req, State) ->
   end.
 
 body({ID, Sale}, Req, State) ->
-  URL = flokk_util:resolve([<<"items">>,ID,<<"sale">>], Req),
-  Price = proplists:get_value(<<"price">>, Sale, 3999),
+  URL = cowboy_base:resolve([<<"items">>,ID,<<"sale">>], Req),
+  Price = fast_key:get(<<"price">>, Sale, 3999),
 
   Body = [
     {<<"item">>, [
-      {<<"href">>, flokk_util:resolve([<<"items">>,ID], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"items">>,ID], Req)}
     ]},
     {<<"purchase">>, [
       {<<"action">>, URL},
@@ -36,13 +36,13 @@ body({ID, Sale}, Req, State) ->
     ]}
   ],
 
-  Body1 = case proplists:get_value(<<"ending">>, Sale) of
+  Body1 = case fast_key:get(<<"ending">>, Sale) of
     undefined -> Body;
     Ending -> lists:concat([Body, [{<<"ending">>, Ending}, {<<"price">>, Price}]])
   end,
 
   %% TODO show the sale stats
-  Body2 = flokk_auth:build(<<"sale.info">>, Req, Body1, [
+  Body2 = cowboy_resource_builder:authorize(<<"sale.info">>, Req, Body1, [
 
   ]),
 

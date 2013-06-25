@@ -16,17 +16,17 @@ read(ID, Req, State) ->
   end.
 
 body(ID, Category, Req, State) ->
-  URL = flokk_util:resolve([<<"category">>,ID], Req),
-  Title = proplists:get_value(<<"title">>, Category, <<>>),
+  URL = cowboy_base:resolve([<<"category">>,ID], Req),
+  Title = fast_key:get(<<"title">>, Category, <<>>),
 
   Body = [
     {<<"title">>, Title},
     {<<"items">>, [
-      {<<"href">>, flokk_util:resolve([<<"categories">>,ID,<<"items">>], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"categories">>,ID,<<"items">>], Req)}
     ]}
   ],
 
-  Body1 = flokk_auth:build(<<"category.update">>, Req, Body, [
+  Body1 = cowboy_resource_builder:authorize(<<"category.update">>, Req, Body, [
     {<<"action">>, URL},
     {<<"method">>, <<"POST">>},
     {<<"input">>, [
@@ -37,7 +37,7 @@ body(ID, Category, Req, State) ->
     ]}
   ]),
 
-  Body2 = flokk_auth:build(<<"category.delete">>, Req, Body1, [
+  Body2 = cowboy_resource_builder:authorize(<<"category.delete">>, Req, Body1, [
     {<<"action">>, URL},
     {<<"method">>, <<"DELETE">>}
   ]),
