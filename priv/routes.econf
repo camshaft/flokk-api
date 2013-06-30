@@ -1,7 +1,7 @@
 {'_', [
   {"/", flokk_resource, [
     {resource, flokk_root},
-    {bare, true}
+    {command, call}
   ]},
 
   {"/categories[/:id]", flokk_resource, [
@@ -9,7 +9,7 @@
   ]},
   {"/categories/:id/items", flokk_resource, [
     {resource, flokk_category_items},
-    {bare, true}
+    {command, call}
   ]},
 
   {"/items[/:id]", flokk_resource, [
@@ -17,15 +17,15 @@
   ]},
   {"/items/:id/sale", flokk_resource, [
     {resource, flokk_item_sale},
-    {bare, true}
+    {command, call}
   ]},
   {"/items/:id/watchers", flokk_resource, [
     {resource, flokk_watcher}
   ]},
 
-  {"/users[/:id]", flokk_resource, [
-    {resource, flokk_user}
-  ]},
+  % {"/users[/:id]", flokk_resource, [
+  %   {resource, flokk_user}
+  % ]},
   % {"/users/:user/history", flokk_user_history, [
   %   {resource, flokk_user_history}
   % ]},
@@ -35,6 +35,32 @@
   ]},
   {"/vendors/:id/items", flokk_resource, [
     {resource, flokk_vendor_items},
-    {bare, true}
+    {command, call}
+  ]},
+
+  {"/users", flokk_resource, [
+    {resource, flokk_user_root},
+    {command, call}
+  ]},
+  {"/users/find", flokk_resource, [
+    {resource, flokk_user_find},
+    {command, list}
+  ]},
+  {"/users/:id", flokk_resource, [
+    {resource, flokk_user_read},
+    {command, read}
+  ]},
+
+  {"/clients", flokk_resource, [
+    {resource, flokk_client_root},
+    {command, call}
+  ]},
+  {"/clients/find", flokk_resource, [
+    {resource, flokk_client_find},
+    {command, list}
+  ]},
+  {"/clients/:id", flokk_resource, [
+    {resource, flokk_client_read},
+    {command, read}
   ]}
 ]}.

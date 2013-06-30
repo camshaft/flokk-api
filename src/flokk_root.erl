@@ -34,7 +34,19 @@ body(Req, State) ->
       |Body]
   end,
 
-  {Body2, Req, State}.
+  %% Auth links
+  Body3 = cowboy_resource_builder:authorize(<<"user">>, Req, Body2, [
+    {<<"users">>, [
+      {<<"href">>, cowboy_base:resolve(<<"users">>, Req)}
+    ]}
+  ]),
+  Body4 = cowboy_resource_builder:authorize(<<"client">>, Req, Body3, [
+    {<<"clients">>, [
+      {<<"href">>, cowboy_base:resolve(<<"clients">>, Req)}
+    ]}
+  ]),
+
+  {Body4, Req, State}.
 
 ttl(Req, State)->
   {3600, Req, State}.

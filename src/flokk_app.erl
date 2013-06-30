@@ -13,7 +13,7 @@ start(_Type, _Args) ->
   Port = simple_env:get_integer("PORT", 5000),
 
   Secret = simple_secrets:init(simple_env:get_binary("ACCESS_TOKEN_KEY")),
-  ScopeEnum = binary:split(simple_env:get_binary("SCOPES", <<>>), <<",">>),
+  ScopeEnum = binary:split(simple_env:get_binary("SCOPES", <<>>), <<",">>, [global]),
 
   Routes = flokk_util:load_dispatch(?MODULE),
 

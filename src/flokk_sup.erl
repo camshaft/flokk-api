@@ -24,11 +24,17 @@ init([Backend]) ->
     {flokk_category,
       {flokk_category, start_link, [Backend]},
       permanent, 5000, worker, [flokk_category]},
+    {flokk_client,
+      {flokk_client, start_link, [Backend]},
+      permanent, 5000, worker, [flokk_client]},
     {flokk_item,
       {flokk_item, start_link, [Backend]},
       permanent, 5000, worker, [flokk_item]},
     {flokk_vendor,
       {flokk_vendor, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_vendor]}
+      permanent, 5000, worker, [flokk_vendor]},
+    {flokk_user,
+      {flokk_user, start_link, [Backend]},
+      permanent, 5000, worker, [flokk_user]}
   ],
   {ok, {{one_for_one, 10, 10}, Procs}}.

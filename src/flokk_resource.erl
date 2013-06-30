@@ -48,20 +48,25 @@ rest_init(Req, Opts) ->
   [Method] = cowboy_req:get([method],Req),
   {ID, Req} = cowboy_req:binding(id, Req),
   Resource = proplists:get_value(resource, Opts),
-  Bare = proplists:get_value(bare, Opts, false),
 
-  Command = case {Method, ID, Bare} of
-    {_, _, true} -> call;
-    {<<"GET">>, undefined, _} -> list;
-    {<<"GET">>, _, _} -> read;
-    {<<"POST">>, undefined, _} -> create;
-    {<<"PUT">>, _, _} -> update;
-    {<<"DELETE">>, _, _} -> delete
+  ForcedCommand = proplists:get_value(command, Opts),
+
+  Command = case ForcedCommand of
+    undefined ->
+      case {Method, ID} of
+        {<<"GET">>, undefined} -> list;
+        {<<"GET">>, _} -> read;
+        {<<"POST">>, undefined} -> create;
+        {<<"PUT">>, _} -> update;
+        {<<"DELETE">>, _} -> delete
+      end;
+    Type ->
+      Type
   end,
 
-  Handler = case Command of
-    call -> Resource;
-    _ -> list_to_atom(lists:concat([atom_to_list(Resource),"_",atom_to_list(Command)]))
+  Handler = case ForcedCommand of
+    undefined -> list_to_atom(lists:concat([atom_to_list(Resource),"_",atom_to_list(Command)]));
+    _ -> Resource
   end,
 
   case Handler:init(Req, Opts) of
