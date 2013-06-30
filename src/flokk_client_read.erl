@@ -17,7 +17,10 @@ read(ID, Req, State) ->
 
 body(ID, Client, Req, State) ->
 
-  Body = [],
+  Body = [
+    {<<"name">>, fast_key:get(<<"name">>, Client)},
+    {<<"description">>, fast_key:get(<<"description">>, Client)}
+  ],
 
   Body2 = cowboy_resource_builder:authorize(<<"client.id">>, Req, Body, [
     {<<"id">>, ID}

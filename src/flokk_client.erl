@@ -68,6 +68,8 @@ handle_call(list, _, DB) ->
 handle_call({read, _ID}, _, DB) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
+    {<<"name">>, <<"The Flokk">>},
+    {<<"description">>, <<"UI">>},
     {<<"secret">>, ?SECRET},
     {<<"redirect_uri">>, [
       <<"http://localhost:5000">>,
