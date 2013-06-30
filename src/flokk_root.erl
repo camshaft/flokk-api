@@ -24,7 +24,7 @@ body(Req, State) ->
   ],
 
   %% User specific links
-  Body2 = case flokk_auth:user_id(Req) of
+  Body2 = case cowboy_resource_owner:owner_id(Req) of
     undefined -> Body;
     UserID ->
       [

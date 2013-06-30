@@ -10,11 +10,10 @@
 
 start(_Type, _Args) ->
   configure(simple_env:get("ERL_ENV", "production")),
-  Port = simple_env:get_integer("PORT", "5000"),
+  Port = simple_env:get_integer("PORT", 5000),
 
   Secret = simple_secrets:init(simple_env:get_binary("ACCESS_TOKEN_KEY")),
-  %% TODO split
-  ScopeEnum = simple_env:get_binary("SCOPES", []),
+  ScopeEnum = binary:split(simple_env:get_binary("SCOPES", <<>>), <<",">>),
 
   Routes = flokk_util:load_dispatch(?MODULE),
 
@@ -31,7 +30,6 @@ start(_Type, _Args) ->
     {middlewares, [
       cowboy_empty_favicon,
       cowboy_base,
-      cowboy_request_id,
       cowboy_resource_owner,
       cowboy_router,
       cowboy_handler,
