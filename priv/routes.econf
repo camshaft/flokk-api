@@ -22,10 +22,6 @@
   {"/items/:id/watchers", flokk_resource, [
     {resource, flokk_watcher}
   ]},
-
-  % {"/users[/:id]", flokk_resource, [
-  %   {resource, flokk_user}
-  % ]},
   % {"/users/:user/history", flokk_user_history, [
   %   {resource, flokk_user_history}
   % ]},
@@ -38,17 +34,12 @@
     {command, call}
   ]},
 
-  {"/users", flokk_resource, [
-    {resource, flokk_user_root},
-    {command, call}
-  ]},
   {"/users/find", flokk_resource, [
     {resource, flokk_user_find},
     {command, list}
   ]},
-  {"/users/:id", flokk_resource, [
-    {resource, flokk_user_read},
-    {command, read}
+  {"/users[/:id]", flokk_resource, [
+    {resource, flokk_user}
   ]},
 
   {"/clients", flokk_resource, [

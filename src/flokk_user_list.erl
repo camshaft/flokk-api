@@ -1,8 +1,9 @@
--module(flokk_user_root).
+-module(flokk_user_list).
 
 -export([init/2]).
 -export([scope/2]).
--export([body/2]).
+-export([list/2]).
+-export([body/3]).
 -export([ttl/2]).
 
 -define(SCOPE, <<"user">>).
@@ -13,7 +14,10 @@ init(Req, _Opts) ->
 scope(Req, State) ->
   {?SCOPE, Req, State}.
 
-body(Req, State) ->
+list(Req, State) ->
+  {[], Req, State}.
+
+body(_, Req, State) ->
   Body = [],
 
   Body2 = cowboy_resource_builder:authorize(<<"user.find">>, Req, Body, [

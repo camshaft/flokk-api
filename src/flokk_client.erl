@@ -19,10 +19,14 @@
 -export([terminate/2]).
 -export([code_change/3]).
 
+-record (state, {
+  db,
+  flokk_client_id = simple_env:get_binary("FLOKK_CLIENT_ID", <<"flokk-ui">>),
+  flokk_client_secret = simple_env:get_binary("FLOKK_CLIENT_SECRET")
+}).
+
 %% Bucket name.
 -define(BUCKET, <<"fk_client">>).
-
--define(SECRET, <<"08950e7d158605b4d9336721fc014269adddab1d95fcc28ce2be87122daeef55">>).
 
 %% API.
 
@@ -57,20 +61,20 @@ find(Query) ->
 %% gen_server.
 
 init(DB) ->
-  {ok, DB}.
+  {ok, #state{db=DB}}.
 
-handle_call(stop, _, DB) ->
-  {stop, normal, stopped, DB};
-handle_call(list, _, DB) ->
+handle_call(stop, _, State) ->
+  {stop, normal, stopped, State};
+handle_call(list, _, State) ->
   % Response = DB:list(?BUCKET),
-  Response = [],
-  {reply, {ok, Response}, DB};
-handle_call({read, _ID}, _, DB) ->
+  Response = [<<"flokk-ui">>],
+  {reply, {ok, Response}, State};
+handle_call({read, ID}, _, State = #state{flokk_client_id = ID, flokk_client_secret = Secret}) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
     {<<"name">>, <<"The Flokk">>},
     {<<"description">>, <<"UI">>},
-    {<<"secret">>, ?SECRET},
+    {<<"secret">>, Secret},
     {<<"redirect_uri">>, [
       <<"http://localhost:5000">>,
       <<"https://test.theflokk.com">>
@@ -85,39 +89,42 @@ handle_call({read, _ID}, _, DB) ->
       <<"user.birthday">>
     ]}
   ],
-  {reply, {ok, Response}, DB};
-handle_call({create, _Item}, _, DB) ->
+  {reply, {ok, Response}, State};
+handle_call({create, _Item}, _, State) ->
   % Response = DB:post(?BUCKET, Item),
   Response = <<"new-client-id">>,
-  {reply, {ok, Response}, DB};
-handle_call({update, _ID, _Item}, _, DB) ->
+  {reply, {ok, Response}, State};
+handle_call({update, _ID, _Item}, _, State) ->
   % Response = DB:put(?BUCKET, ID, Item),
   Response = ok,
-  {reply, Response, DB};
-handle_call({delete, _ID}, _, DB) ->
+  {reply, Response, State};
+handle_call({delete, _ID}, _, State) ->
   % Response = DB:delete(?BUCKET, ID),
-  {reply, ok, DB};
-handle_call({find, Query}, _, DB) ->
+  {reply, ok, State};
+handle_call({find, Query}, _, State = #state{flokk_client_id = FlokkID}) ->
   % Response = DB:get(?BUCKET, ID),
-  Results = [
-    fast_key:get(<<"id">>, Query, <<"1">>)
-  ],
-  {reply, {ok, Results}, DB};
+  Results = case fast_key:get(<<"id">>, Query) of
+    FlokkID = ID ->
+      [ID];
+    _ ->
+      []
+  end,
+  {reply, {ok, Results}, State};
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
-handle_call(_, _, DB) ->
-  {reply, ignore, DB}.
+handle_call(_, _, State) ->
+  {reply, ignore, State}.
 
-handle_cast(_, DB) ->
-  {noreply, DB}.
+handle_cast(_, State) ->
+  {noreply, State}.
 
-handle_info(_, DB) ->
-  {noreply, DB}.
+handle_info(_, State) ->
+  {noreply, State}.
 
-terminate(_Reason, _DB) ->
+terminate(_Reason, _State) ->
   ok.
 
-code_change(_OldVsn, DB, _Extra) ->
-  {ok, DB}.
+code_change(_OldVsn, State, _Extra) ->
+  {ok, State}.
 
 %% Internal.

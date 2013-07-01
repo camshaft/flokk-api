@@ -22,8 +22,6 @@
 %% Bucket name.
 -define(BUCKET, <<"fk_user">>).
 
--define(TESTING, <<"c2NyeXB0AA8AAAAIAAAAAfFQ0AYcpkczgADFKY4qwd1P6X6tdD3x2aSqIJ5H1ehM/EZAmqjW/3jE5qk7VfO2ADR4+6dW5xhUi+Hmgn4OcAr6SDmgIrk8lcBqmaYSFosV">>).
-
 %% API.
 
 start_link(DB) ->
@@ -62,33 +60,56 @@ init(DB) ->
 handle_call(stop, _, DB) ->
   {stop, normal, stopped, DB};
 handle_call(list, _, DB) ->
-  % Response = DB:list(?BUCKET),
-  Response = [],
-  {reply, {ok, Response}, DB};
-handle_call({read, _ID}, _, DB) ->
-  % Response = DB:get(?BUCKET, ID),
-  Response = [
-    {<<"email">>, <<"cameron@theflokk.com">>},
-    {<<"passhash">>, ?TESTING}
-  ],
-  {reply, {ok, Response}, DB};
-handle_call({create, _Item}, _, DB) ->
-  % Response = DB:post(?BUCKET, Item),
-  Response = <<"new-user-id">>,
-  {reply, {ok, Response}, DB};
-handle_call({update, _ID, _Item}, _, DB) ->
-  % Response = DB:put(?BUCKET, ID, Item),
+  % TODO page this
+  Response = DB:list_keys(?BUCKET),
+  {reply, Response, DB};
+handle_call({read, ID}, _, DB) ->
+  case DB:get(?BUCKET, ID) of
+    {ok, Obj} ->
+      User = DB:body(Obj),
+      {reply, {ok, User}, DB};
+    {error, _} = Error ->
+      {reply, Error, DB};
+    _ ->
+      {reply, {error, not_found}, DB}
+  end;
+handle_call({create, User}, _, DB) ->
+  Indicies = [<<"facebook">>, <<"google">>, <<"email">>],
+  %% TODO validate the properties
+  %% TODO make sure passhash and email are at least set
+  Obj = DB:new(?BUCKET, undefined, User, Indicies),
+
+  %% Verify that the email doesn't exist
+  case find_by_index([{<<"email">>, fast_key:get(<<"email">>, User)}], DB) of
+    {ok, []} ->
+      case DB:put(Obj) of
+        {ok, Saved} ->
+          {reply, {ok, riakc_obj:key(Saved)}, DB};
+        Other ->
+          {reply, Other, DB}
+      end;
+    %% This user already exists
+    {ok, _} ->
+      {reply, {error, email_in_use}, DB};
+    Error ->
+      {reply, Error, DB}
+  end;
+
+handle_call({update, _ID, _User}, _, DB) ->
+  % Response = DB:put(?BUCKET, ID, User),
   Response = ok,
   {reply, Response, DB};
 handle_call({delete, _ID}, _, DB) ->
   % Response = DB:delete(?BUCKET, ID),
   {reply, ok, DB};
-handle_call({find, _Query}, _, DB) ->
-  % Response = DB:get(?BUCKET, ID),
-  Results = [
-    <<"1">>
-  ],
-  {reply, {ok, Results}, DB};
+handle_call({find, Query}, _, DB) ->
+  case find_by_index(Query, DB) of
+    {error, <<"[{unknown_field_type",Type/binary>>} ->
+      io:format("unknown_field_type ~p~n", [Type]),
+      {reply, {ok, []}, DB};
+    Other ->
+      {reply, Other, DB}
+  end;
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
 handle_call(_, _, DB) ->
@@ -106,4 +127,19 @@ terminate(_Reason, _DB) ->
 code_change(_OldVsn, DB, _Extra) ->
   {ok, DB}.
 
-%% Internal.
+%% internal.
+
+find_by_index([], _DB) ->
+  {ok, []};
+find_by_index([{_, undefined}|Query], DB) ->
+  find_by_index(Query, DB);
+find_by_index([{<<"id">>, ID}|_], _DB) ->
+  % TODO we should probably call to make sure this exists
+  {ok, [ID]};
+find_by_index([{Key, Value}|_], DB) ->
+  case DB:get_binary_index(?BUCKET, Key, Value) of
+    {ok, {keys, Keys}} ->
+      {ok, Keys};
+    Error ->
+      Error
+  end.

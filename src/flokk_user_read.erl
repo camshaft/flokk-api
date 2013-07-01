@@ -31,7 +31,11 @@ body(ID, User, Req, State) ->
     {<<"passhash">>, fast_key:get(<<"passhash">>, User)}
   ]),
 
-  {Body4, Req, State}.
+  Body5 = cowboy_resource_builder:authorize(<<"user.name">>, Req, Body4, [
+    {<<"name">>, fast_key:get(<<"name">>, User)}
+  ]),
+
+  {Body5, Req, State}.
 
 ttl(Req, State) ->
   {3600, Req, State}.

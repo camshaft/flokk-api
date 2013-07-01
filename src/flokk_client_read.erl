@@ -10,9 +10,9 @@ init(Req, _Opts) ->
 
 read(ID, Req, State) ->
   case flokk_client:read(ID) of
-    {error, notfound} -> {error, 404, Req};
     {error, _} -> {error, 500, Req};
-    {ok, Client} -> {Client, Req, State}
+    {ok, Client} -> {Client, Req, State};
+    _ -> {error, 404, Req}
   end.
 
 body(ID, Client, Req, State) ->
