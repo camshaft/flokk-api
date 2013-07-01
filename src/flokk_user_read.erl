@@ -24,15 +24,15 @@ body(ID, User, Req, State) ->
   ]),
 
   Body3 = cowboy_resource_builder:authorize(<<"user.email">>, Req, Body2, [
-    {<<"email">>, fast_key:get(<<"email">>, User)}
+    {<<"email">>, fast_key:get(<<"email">>, User, null)}
   ]),
 
   Body4 = cowboy_resource_builder:authorize(<<"user.passhash">>, Req, Body3, [
-    {<<"passhash">>, fast_key:get(<<"passhash">>, User)}
+    {<<"passhash">>, fast_key:get(<<"passhash">>, User, null)}
   ]),
 
   Body5 = cowboy_resource_builder:authorize(<<"user.name">>, Req, Body4, [
-    {<<"name">>, fast_key:get(<<"name">>, User)}
+    {<<"name">>, fast_key:get(<<"name">>, User, null)}
   ]),
 
   {Body5, Req, State}.
