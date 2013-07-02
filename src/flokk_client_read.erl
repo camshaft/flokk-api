@@ -23,7 +23,8 @@ body(ID, Client, Req, State) ->
   ],
 
   Body2 = cowboy_resource_builder:authorize(<<"client.id">>, Req, Body, [
-    {<<"id">>, ID}
+    {<<"id">>, ID},
+    {<<"internal">>, fast_key:get(<<"internal">>, Client, false)}
   ]),
 
   Body3 = cowboy_resource_builder:authorize(<<"client.secret">>, Req, Body2, [
