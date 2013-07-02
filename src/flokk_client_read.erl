@@ -18,8 +18,8 @@ read(ID, Req, State) ->
 body(ID, Client, Req, State) ->
 
   Body = [
-    {<<"name">>, fast_key:get(<<"name">>, Client)},
-    {<<"description">>, fast_key:get(<<"description">>, Client)}
+    {<<"name">>, fast_key:get(<<"name">>, Client, null)},
+    {<<"description">>, fast_key:get(<<"description">>, Client, null)}
   ],
 
   Body2 = cowboy_resource_builder:authorize(<<"client.id">>, Req, Body, [
@@ -27,15 +27,15 @@ body(ID, Client, Req, State) ->
   ]),
 
   Body3 = cowboy_resource_builder:authorize(<<"client.secret">>, Req, Body2, [
-    {<<"secret">>, fast_key:get(<<"secret">>, Client)}
+    {<<"secret">>, fast_key:get(<<"secret">>, Client, null)}
   ]),
 
   Body4 = cowboy_resource_builder:authorize(<<"client.redirect_uri">>, Req, Body3, [
-    {<<"redirect_uri">>, fast_key:get(<<"redirect_uri">>, Client)}
+    {<<"redirect_uri">>, fast_key:get(<<"redirect_uri">>, Client, null)}
   ]),
 
   Body5 = cowboy_resource_builder:authorize(<<"client.scopes">>, Req, Body4, [
-    {<<"scopes">>, fast_key:get(<<"scopes">>, Client)}
+    {<<"scopes">>, fast_key:get(<<"scopes">>, Client, null)}
   ]),
 
   {Body5, Req, State}.
