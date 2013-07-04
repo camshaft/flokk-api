@@ -32,8 +32,7 @@ start(_Type, _Args) ->
       cowboy_base,
       cowboy_resource_owner,
       cowboy_router,
-      cowboy_handler,
-      flokk_middleware_pubsub
+      cowboy_handler
     ]}
   ]),
   lager:info("Server started on port ~p", [Port]),
