@@ -19,7 +19,7 @@ list(Req, State) ->
 body(Vendors, Req, State) ->
   Body = [
     {<<"vendors">>,
-      [format_vendor(ID, Vendor, Req) || {ID, Vendor} <- Vendors]
+      [format_vendor(ID, Title, Req) || {ID, Title} <- Vendors]
     }
   ],
 
@@ -38,11 +38,10 @@ body(Vendors, Req, State) ->
 
   {Body1, Req, State}.
 
-format_vendor(ID, Vendor, Req)->
+format_vendor(ID, Title, Req)->
   [
     {<<"href">>, cowboy_base:resolve([<<"vendors">>, ID], Req)},
-    {<<"title">>, fast_key:get(<<"title">>, Vendor)},
-    {<<"logo">>, fast_key:get(<<"logo">>, Vendor)}
+    {<<"title">>, Title}
   ].
 
 ttl(Req, State)->

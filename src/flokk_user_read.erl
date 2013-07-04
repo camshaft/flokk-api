@@ -16,7 +16,7 @@ read(ID, Req, State) ->
   end.
 
 body(ID, User, Req, State) ->
-
+  %% TODO restrict these to scopes+user id
   Body = [],
 
   Body2 = cowboy_resource_builder:authorize(<<"user.id">>, Req, Body, [

@@ -23,6 +23,11 @@ body(Items, Req, State) ->
     }
   ],
 
+  {ok, Categories} = flokk_category:list(),
+  {ok, Vendors} = flokk_vendor:list(),
+
+  io:format("~p~n", [cowboy_resource_owner:scopes(Req)]),
+
   %% Expose the create form
   Body1 = cowboy_resource_builder:authorize(<<"item.create">>, Req, Body, [
     {<<"create">>, [
@@ -31,6 +36,48 @@ body(Items, Req, State) ->
       {<<"input">>, [
         {<<"title">>, [
           {<<"type">>, <<"text">>}
+        ]},
+        {<<"description">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"retail">>, [
+          {<<"type">>, <<"currency">>}
+        ]},
+        {<<"max-discount">>, [
+          {<<"type">>, <<"percent">>}
+        ]},
+        {<<"shipping">>, [
+          {<<"type">>, <<"currency">>}
+        ]},
+        {<<"currency">>, [
+          {<<"type">>, <<"select">>},
+          {<<"options">>, [
+            %% TODO pull this from somewhere
+            [
+              {<<"value">>, <<"USD">>}
+            ]
+          ]}
+        ]},
+        {<<"category">>, [
+          {<<"type">>, <<"select">>},
+          {<<"options">>, [
+            [
+              {<<"prompt">>, Title},
+              {<<"value">>, ID}
+            ] || {ID, Title} <- Categories
+          ]}
+        ]},
+        {<<"publisher">>, [
+          {<<"type">>, <<"select">>},
+          {<<"options">>, [
+            [
+              {<<"prompt">>, Title},
+              {<<"value">>, ID}
+            ] || {ID, Title} <- Vendors
+          ]}
+        ]},
+        {<<"image">>, [
+          {<<"type">>, <<"url">>}
         ]}
       ]}
     ]}

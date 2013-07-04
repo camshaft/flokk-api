@@ -9,6 +9,7 @@
 -export([create/1]).
 -export([update/2]).
 -export([delete/1]).
+-export([find/1]).
 -export([sale/1]).
 
 %% gen_server.
@@ -21,24 +22,6 @@
 
 %% Bucket name.
 -define(BUCKET, <<"fk_item">>).
-
--define (IMAGES, [
-  <<"https://s3.amazonaws.com/flokk-images/travel-signs.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/octopus.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/clock.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/camera.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/duvet.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/shark.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/lamp.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/grow-up.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/fearless.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/pencil.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/cleaner.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/juicer.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/be-nice.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/bowls.jpg">>,
-  <<"https://s3.amazonaws.com/flokk-images/tentacles.jpg">>
-]).
 
 %% API.
 
@@ -66,6 +49,9 @@ update(ID, Item) ->
 delete(ID) ->
   gen_server:call(?MODULE, {delete, ID}).
 
+find(Query) ->
+  gen_server:call(?MODULE, {find, Query}).
+
 sale(ID) ->
   gen_server:call(?MODULE, {sale, ID}).
 
@@ -78,45 +64,49 @@ init(DB) ->
 handle_call(stop, _, DB) ->
   {stop, normal, stopped, DB};
 handle_call(list, _, DB) ->
-  % Response = DB:list(?BUCKET),
-  Response = [],
-  {reply, {ok, Response}, DB};
-handle_call({read, ID}, _, DB) ->
-  % Response = DB:get(?BUCKET, ID),
-  Image = lists:nth((list_to_integer(binary_to_list(ID)) rem length(?IMAGES))+1, ?IMAGES),
-  Response = [
-    {<<"name">>, <<"Lame Print">>},
-    {<<"description">>, <<"Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehen- derit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.">>},
-    {<<"category">>, <<"accessories">>},
-    {<<"vendor_id">>, <<"1234">>},
-    {<<"vendor_title">>, <<"Scott n' Dave">>},
-    {<<"retail">>, 4999},
-    {<<"shipping">>, 299},
-    {<<"thumbnail">>, Image},
-    {<<"image">>, Image}
-  ],
-  {reply, {ok, Response}, DB};
-handle_call({create, _Item}, _, DB) ->
-  % Response = DB:post(?BUCKET, Item),
-  Response = <<"new-item-id">>,
-  {reply, {ok, Response}, DB};
-handle_call({update, _ID, _Item}, _, DB) ->
-  % Response = DB:put(?BUCKET, ID, Item),
-  Response = ok,
+  % TODO page this
+  Response = DB:list_keys(?BUCKET),
   {reply, Response, DB};
-handle_call({delete, _ID}, _, DB) ->
-  % Response = DB:delete(?BUCKET, ID),
-  {reply, ok, DB};
-handle_call({sale, ID}, _, DB) ->
+handle_call({read, ID}, _, DB) ->
+  case DB:get(?BUCKET, ID) of
+    {ok, Obj} ->
+      User = DB:body(Obj),
+      {reply, {ok, User}, DB};
+    {error, _} = Error ->
+      {reply, Error, DB};
+    _ ->
+      {reply, {error, not_found}, DB}
+  end;
+handle_call({create, Item}, _, DB) ->
+  % TODO validate the fields
+  Obj = DB:new(?BUCKET, undefined, Item, [<<"category">>, <<"vendor">>]),
+  case DB:put(Obj) of
+    {ok, Saved} ->
+      {reply, {ok, riakc_obj:key(Saved)}, DB};
+    Other ->
+      {reply, Other, DB}
+  end;
+handle_call({update, ID, Item}, _, DB) ->
+  % TODO validate the fields
+  Response = DB:put(?BUCKET, ID, Item),
+  {reply, Response, DB};
+handle_call({delete, ID}, _, DB) ->
+  Response = DB:delete(?BUCKET, ID),
+  {reply, Response, DB};
+handle_call({find, Query}, _, DB) ->
+  case find_by_index(Query, DB) of
+    {error, <<"[{unknown_field_type",Type/binary>>} ->
+      io:format("unknown_field_type ~p~n", [Type]),
+      {reply, {ok, []}, DB};
+    Other ->
+      {reply, Other, DB}
+  end;
+handle_call({sale, _ID}, _, DB) ->
+  %% TODO
   % Response = DB:get(?BUCKET, ID),
   {Mega, Sec, _Micro} = now(),
   Timestamp = Mega * 1000000 + Sec + random:uniform(3600),
-  Sale = case ID of
-    <<"3">> -> [];
-    <<"5">> -> [];
-    <<"12">> -> [];
-    _ -> [{<<"ending">>, Timestamp}]
-  end,
+  Sale = [{<<"ending">>, Timestamp}],
   {reply, {ok, Sale}, DB};
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
@@ -135,4 +125,19 @@ terminate(_Reason, _DB) ->
 code_change(_OldVsn, DB, _Extra) ->
   {ok, DB}.
 
-%% Internal.
+%% internal.
+
+find_by_index([], _DB) ->
+  {ok, []};
+find_by_index([{_, undefined}|Query], DB) ->
+  find_by_index(Query, DB);
+find_by_index([{<<"id">>, ID}|_], _DB) ->
+  % TODO we should probably call to make sure this exists
+  {ok, [ID]};
+find_by_index([{Key, Value}|_], DB) ->
+  case DB:get_binary_index(?BUCKET, Key, Value) of
+    {ok, {keys, Keys}} ->
+      {ok, Keys};
+    Error ->
+      Error
+  end.

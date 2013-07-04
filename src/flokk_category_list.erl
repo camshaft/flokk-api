@@ -19,7 +19,7 @@ list(Req, State) ->
 body(Categories, Req, State) ->
   Body = [
     {<<"categories">>,
-      [format_category(ID, Category, Req) || {ID, Category} <- Categories]
+      [format_category(ID, Title, Req) || {ID, Title} <- Categories]
     }
   ],
 
@@ -38,10 +38,10 @@ body(Categories, Req, State) ->
 
   {Body1, Req, State}.
 
-format_category(ID, Category, Req)->
+format_category(ID, Title, Req)->
   [
     {<<"href">>, cowboy_base:resolve([<<"categories">>, ID], Req)},
-    {<<"title">>, fast_key:get(<<"title">>, Category)},
+    {<<"title">>, Title},
     {<<"items">>, cowboy_base:resolve([<<"categories">>,ID,<<"items">>], Req)}
   ].
 

@@ -62,38 +62,7 @@ handle_call(stop, _, DB) ->
 handle_call(list, _, DB) ->
   % Response = DB:list(?BUCKET),
   Response = [
-    {<<"scott-n-dave">>, [
-      {<<"title">>, <<"Scott 'n Dave">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"ikea">>, [
-      {<<"title">>, <<"IKEA">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"scott-n-dave">>, [
-      {<<"title">>, <<"Scott 'n Dave">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"ikea">>, [
-      {<<"title">>, <<"IKEA">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"scott-n-dave">>, [
-      {<<"title">>, <<"Scott 'n Dave">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"ikea">>, [
-      {<<"title">>, <<"IKEA">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"scott-n-dave">>, [
-      {<<"title">>, <<"Scott 'n Dave">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]},
-    {<<"ikea">>, [
-      {<<"title">>, <<"IKEA">>},
-      {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-    ]}
+    {<<"scott-n-dave">>, <<"Scott 'n Dave">>}
   ],
   {reply, {ok, Response}, DB};
 handle_call({read, _ID}, _, DB) ->

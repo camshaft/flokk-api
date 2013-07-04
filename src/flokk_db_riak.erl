@@ -12,6 +12,7 @@
 -export([get/2]).
 -export([get_binary_index/3]).
 -export([put/1]).
+-export([list_keys/1]).
 
 %% gen_server.
 -export([start_link/1]).
@@ -100,6 +101,9 @@ get_binary_index(Bucket, Index, Value)->
 put(Obj)->
   gen_server:call(?MODULE, {put, Obj}).
 
+list_keys(Bucket)->
+  gen_server:call(?MODULE, {list_keys, Bucket}).
+
 %% gen_server.
 
 start_link(Hosts) ->
@@ -120,6 +124,9 @@ handle_call({get_binary_index, Bucket, Index, Value}, _, State = #state{conns = 
   {reply, Results, State};
 handle_call({put, Obj}, _, State = #state{conns = [Conn|_]}) ->
   Result = riakc_pb_socket:put(Conn, Obj),
+  {reply, Result, State};
+handle_call({list_keys, Bucket}, _, State = #state{conns = [Conn|_]}) ->
+  Result = riakc_pb_socket:list_keys(Conn, Bucket),
   {reply, Result, State};
 handle_call(ping, _, State = #state{conns = [Conn|_]}) ->
   {reply, riakc_pb_socket:ping(Conn), State};

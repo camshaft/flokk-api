@@ -62,21 +62,11 @@ handle_call(stop, _, DB) ->
 handle_call(list, _, DB) ->
   % Response = DB:list(?BUCKET),
   Response = [
-    {<<"living-room">>, [
-      {<<"title">>, <<"Living Room">>}
-    ]},
-    {<<"bathroom">>, [
-      {<<"title">>, <<"Bathroom">>}
-    ]},
-    {<<"kitchen">>, [
-      {<<"title">>, <<"Kitchen">>}
-    ]},
-    {<<"art">>, [
-      {<<"title">>, <<"Art">>}
-    ]},
-    {<<"accessories">>, [
-      {<<"title">>, <<"Accessories">>}
-    ]}
+    {<<"living-room">>, <<"Living Room">>},
+    {<<"bathroom">>, <<"Bathroom">>},
+    {<<"kitchen">>, <<"Kitchen">>},
+    {<<"art">>, <<"Art">>},
+    {<<"accessories">>, <<"Accessories">>}
   ],
   {reply, {ok, Response}, DB};
 handle_call({read, ID}, _, DB) ->
@@ -96,26 +86,6 @@ handle_call({update, _ID, _Category}, _, DB) ->
 handle_call({delete, _ID}, _, DB) ->
   % Response = DB:delete(?BUCKET, ID),
   {reply, ok, DB};
-handle_call({items, _ID}, _, DB) ->
-  % Response = DB:delete(?BUCKET, ID),
-  Response = [
-    {<<"1">>, [{<<"title">>, <<"Lame Print 1">>}]},
-    {<<"2">>, [{<<"title">>, <<"Lame Print 2">>}]},
-    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]},
-    {<<"4">>, [{<<"title">>, <<"Lame Print 4">>}]},
-    {<<"5">>, [{<<"title">>, <<"Lame Print 5">>}]},
-    {<<"6">>, [{<<"title">>, <<"Lame Print 6">>}]},
-    {<<"7">>, [{<<"title">>, <<"Lame Print 7">>}]},
-    {<<"8">>, [{<<"title">>, <<"Lame Print 8">>}]},
-    {<<"9">>, [{<<"title">>, <<"Lame Print 9">>}]},
-    {<<"10">>, [{<<"title">>, <<"Lame Print 10">>}]},
-    {<<"11">>, [{<<"title">>, <<"Lame Print 11">>}]},
-    {<<"12">>, [{<<"title">>, <<"Lame Print 12">>}]},
-    {<<"13">>, [{<<"title">>, <<"Lame Print 13">>}]},
-    {<<"14">>, [{<<"title">>, <<"Lame Print 14">>}]},
-    {<<"15">>, [{<<"title">>, <<"Lame Print 15">>}]}
-  ],
-  {reply, {ok, Response}, DB};
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
 handle_call(_, _, DB) ->

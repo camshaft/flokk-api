@@ -21,8 +21,12 @@
 
 -record (state, {
   db,
-  flokk_client_id = simple_env:get_binary("FLOKK_CLIENT_ID", <<"flokk-ui">>),
-  flokk_client_secret = simple_env:get_binary("FLOKK_CLIENT_SECRET")
+  flokk_ui_client_id = simple_env:get_binary("FLOKK_UI_CLIENT_ID", <<"flokk-ui">>),
+  flokk_ui_client_secret = simple_env:get_binary("FLOKK_UI_CLIENT_SECRET"),
+  flokk_ui_client_scopes = binary:split(simple_env:get_binary("FLOKK_UI_CLIENT_SCOPES", <<>>), <<",">>, [global]),
+  flokk_admin_client_id = simple_env:get_binary("FLOKK_ADMIN_CLIENT_ID", <<"flokk-admin">>),
+  flokk_admin_client_secret = simple_env:get_binary("FLOKK_ADMIN_CLIENT_SECRET"),
+  flokk_admin_client_scopes = binary:split(simple_env:get_binary("FLOKK_ADMIN_CLIENT_SCOPES", <<>>), <<",">>, [global])
 }).
 
 %% Bucket name.
@@ -69,7 +73,7 @@ handle_call(list, _, State) ->
   % Response = DB:list(?BUCKET),
   Response = [<<"flokk-ui">>],
   {reply, {ok, Response}, State};
-handle_call({read, ID}, _, State = #state{flokk_client_id = ID, flokk_client_secret = Secret}) ->
+handle_call({read, ID}, _, State = #state{flokk_ui_client_id = ID, flokk_ui_client_secret = Secret, flokk_ui_client_scopes = Scopes}) ->
   % Response = DB:get(?BUCKET, ID),
   Response = [
     {<<"name">>, <<"The Flokk">>},
@@ -77,17 +81,26 @@ handle_call({read, ID}, _, State = #state{flokk_client_id = ID, flokk_client_sec
     {<<"secret">>, Secret},
     {<<"redirect_uri">>, [
       <<"http://localhost:5000">>,
-      <<"https://test.theflokk.com">>
+      <<"https://test.theflokk.com">>,
+      <<"https://www.theflokk.com">>
     ]},
     {<<"internal">>, true},
-    {<<"scopes">>, [
-      <<"user.email">>,
-      <<"user.image">>,
-      <<"user.name">>
+    {<<"scopes">>, Scopes}
+  ],
+  {reply, {ok, Response}, State};
+handle_call({read, ID}, _, State = #state{flokk_admin_client_id = ID, flokk_admin_client_secret = Secret, flokk_admin_client_scopes = Scopes}) ->
+  % Response = DB:get(?BUCKET, ID),
+  Response = [
+    {<<"name">>, <<"The Flokk Admin">>},
+    {<<"description">>, <<"Admin UI">>},
+    {<<"secret">>, Secret},
+    {<<"redirect_uri">>, [
+      <<"http://localhost:5003">>,
+      <<"https://admin-test.theflokk.com">>,
+      <<"https://admin.theflokk.com">>
     ]},
-    {<<"optional_scopes">>, [
-      <<"user.birthday">>
-    ]}
+    {<<"internal">>, true},
+    {<<"scopes">>, Scopes}
   ],
   {reply, {ok, Response}, State};
 handle_call({create, _Item}, _, State) ->
@@ -101,10 +114,12 @@ handle_call({update, _ID, _Item}, _, State) ->
 handle_call({delete, _ID}, _, State) ->
   % Response = DB:delete(?BUCKET, ID),
   {reply, ok, State};
-handle_call({find, Query}, _, State = #state{flokk_client_id = FlokkID}) ->
+handle_call({find, Query}, _, State = #state{flokk_ui_client_id = UIID, flokk_admin_client_id = AdminID}) ->
   % Response = DB:get(?BUCKET, ID),
   Results = case fast_key:get(<<"id">>, Query) of
-    FlokkID = ID ->
+    UIID = ID ->
+      [ID];
+    AdminID = ID ->
       [ID];
     _ ->
       []
