@@ -19,14 +19,12 @@ list(Req, State) ->
 body(Items, Req, State) ->
   Body = [
     {<<"items">>,
-      [format_item(ID, Item, Req) || {ID, Item} <- Items]
+      [format_item(ID, Req) || ID <- Items]
     }
   ],
 
   {ok, Categories} = flokk_category:list(),
   {ok, Vendors} = flokk_vendor:list(),
-
-  io:format("~p~n", [cowboy_resource_owner:scopes(Req)]),
 
   %% Expose the create form
   Body1 = cowboy_resource_builder:authorize(<<"item.create">>, Req, Body, [
@@ -34,23 +32,29 @@ body(Items, Req, State) ->
       {<<"action">>, cowboy_base:resolve(<<"items">>, Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
-        {<<"title">>, [
-          {<<"type">>, <<"text">>}
+        {<<"name">>, [
+          {<<"type">>, <<"text">>},
+          {<<"required">>, true}
         ]},
         {<<"description">>, [
-          {<<"type">>, <<"text">>}
+          {<<"type">>, <<"textarea">>},
+          {<<"required">>, true}
         ]},
         {<<"retail">>, [
-          {<<"type">>, <<"currency">>}
+          {<<"type">>, <<"currency">>},
+          {<<"required">>, true}
         ]},
         {<<"max-discount">>, [
-          {<<"type">>, <<"percent">>}
+          {<<"type">>, <<"percentage">>},
+          {<<"required">>, true}
         ]},
         {<<"shipping">>, [
-          {<<"type">>, <<"currency">>}
+          {<<"type">>, <<"currency">>},
+          {<<"required">>, true}
         ]},
         {<<"currency">>, [
           {<<"type">>, <<"select">>},
+          {<<"required">>, true},
           {<<"options">>, [
             %% TODO pull this from somewhere
             [
@@ -60,6 +64,7 @@ body(Items, Req, State) ->
         ]},
         {<<"category">>, [
           {<<"type">>, <<"select">>},
+          {<<"required">>, true},
           {<<"options">>, [
             [
               {<<"prompt">>, Title},
@@ -69,6 +74,7 @@ body(Items, Req, State) ->
         ]},
         {<<"publisher">>, [
           {<<"type">>, <<"select">>},
+          {<<"required">>, true},
           {<<"options">>, [
             [
               {<<"prompt">>, Title},
@@ -76,8 +82,9 @@ body(Items, Req, State) ->
             ] || {ID, Title} <- Vendors
           ]}
         ]},
-        {<<"image">>, [
-          {<<"type">>, <<"url">>}
+        {<<"images">>, [
+          {<<"type">>, <<"url">>},
+          {<<"required">>, true}
         ]}
       ]}
     ]}
@@ -85,10 +92,9 @@ body(Items, Req, State) ->
 
   {Body1, Req, State}.
 
-format_item(ID, Item, Req)->
+format_item(ID, Req)->
   [
-    {<<"href">>, cowboy_base:resolve([<<"items">>, ID], Req)},
-    {<<"title">>, fast_key:get(<<"title">>, Item)}
+    {<<"href">>, cowboy_base:resolve([<<"items">>, ID], Req)}
   ].
 
 ttl(Req, State)->

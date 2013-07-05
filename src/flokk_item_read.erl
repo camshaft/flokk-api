@@ -19,16 +19,16 @@ body(ID, Item, Req, State) ->
   URL = cowboy_base:resolve([<<"items">>,ID], Req),
   Name = fast_key:get(<<"name">>, Item, <<>>),
   Description = fast_key:get(<<"description">>, Item, <<>>),
-  Category = fast_key:get(<<"category">>, Item, <<"1">>),
+  Category = fast_key:get(<<"category">>, Item, <<"misc">>),
   Retail = fast_key:get(<<"retail">>, Item, <<>>),
-  MinPrice = fast_key:get(<<"min-price">>, Item, 0),
+  MinPrice = fast_key:get(<<"max-discount">>, Item, 0),
   Shipping = fast_key:get(<<"shipping">>, Item, 0),
   Currency = fast_key:get(<<"currency">>, Item, <<"USD">>),
   Keywords = fast_key:get(<<"keywords">>, Item, []),
   VendorID = fast_key:get(<<"vendor_id">>, Item, <<>>),
   VendorTitle = fast_key:get(<<"vendor_title">>, Item, <<>>),
   Image = fast_key:get(<<"image">>, Item, <<>>),
-  Thumbnail = fast_key:get(<<"thumbnail">>, Item, <<>>),
+  Images = fast_key:get(<<"images">>, Item, <<>>),
   _Options = fast_key:get(<<"options">>, Item, []),
 
   Body = [
@@ -56,9 +56,11 @@ body(ID, Item, Req, State) ->
       {<<"src">>, Image},
       {<<"type">>, <<"image/jpeg">>} %% TODO should we store this here or just get it from the extension
     ]},
-    {<<"thumbnail">>, [
-      {<<"src">>, Thumbnail},
-      {<<"type">>, <<"image/jpeg">>}
+    {<<"alt-image">>, [
+      [
+        {<<"src">>, Src},
+        {<<"type">>, <<"image/jpeg">>}
+      ] || Src <- Images
     ]}
   ],
 

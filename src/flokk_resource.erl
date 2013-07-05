@@ -51,6 +51,8 @@ rest_init(Req, Opts) ->
 
   ForcedCommand = proplists:get_value(command, Opts),
 
+  io:format("Scopes ~p~n", [cowboy_resource_owner:scopes(Req)]),
+
   Command = case ForcedCommand of
     undefined ->
       case {Method, ID} of

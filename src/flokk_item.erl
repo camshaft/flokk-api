@@ -79,7 +79,8 @@ handle_call({read, ID}, _, DB) ->
   end;
 handle_call({create, Item}, _, DB) ->
   % TODO validate the fields
-  Obj = DB:new(?BUCKET, undefined, Item, [<<"category">>, <<"vendor">>]),
+  Item2 = [{<<"image">>, hd(fast_key:get(<<"images">>, Item, []))}|Item],
+  Obj = DB:new(?BUCKET, undefined, Item2, [<<"category">>, <<"publisher">>]),
   case DB:put(Obj) of
     {ok, Saved} ->
       {reply, {ok, riakc_obj:key(Saved)}, DB};

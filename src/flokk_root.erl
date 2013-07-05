@@ -46,7 +46,14 @@ body(Req, State) ->
     ]}
   ]),
 
-  {Body4, Req, State}.
+  %% Item listing
+  Body5 = cowboy_resource_builder:authorize(<<"item.list">>, Req, Body4, [
+    {<<"items">>, [
+      {<<"href">>, cowboy_base:resolve(<<"items">>, Req)}
+    ]}
+  ]),
+
+  {Body5, Req, State}.
 
 ttl(Req, State)->
   {3600, Req, State}.

@@ -23,9 +23,8 @@ body(Items, Req, State) ->
   Body = [
     {<<"items">>, [
       [
-        {<<"href">>, cowboy_base:resolve([<<"items">>,ID], Req)},
-        {<<"title">>, fast_key:get(<<"title">>, Item)}
-      ] || {ID, Item} <- Items
+        {<<"href">>, cowboy_base:resolve([<<"items">>,ID], Req)}
+      ] || ID <- Items
     ]}
   ],
 
