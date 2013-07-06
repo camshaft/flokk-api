@@ -105,10 +105,7 @@ handle_call({find, Query}, _, DB) ->
 handle_call({sale, _ID}, _, DB) ->
   %% TODO
   % Response = DB:get(?BUCKET, ID),
-  {Mega, Sec, _Micro} = now(),
-  Timestamp = Mega * 1000000 + Sec + random:uniform(3600),
-  Sale = [{<<"ending">>, Timestamp}],
-  {reply, {ok, Sale}, DB};
+  {reply, {ok, []}, DB};
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};
 handle_call(_, _, DB) ->
