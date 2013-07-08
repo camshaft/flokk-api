@@ -111,7 +111,7 @@ start_link(Hosts) ->
 
 %% TODO support pooling multiple connections
 init([{Host, Port}|_] = Hosts) ->
-  {ok, Conn} = riakc_pb_socket:start_link(Host, Port),
+  {ok, Conn} = riakc_pb_socket:start_link(Host, Port, [auto_reconnect]),
   {ok, #state{hosts = Hosts, conns = [Conn]}}.
 
 handle_call(stop, _, State) ->
