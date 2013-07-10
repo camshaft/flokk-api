@@ -84,7 +84,13 @@ handle_call({create, User}, _, DB) ->
     {ok, []} ->
       case DB:put(Obj) of
         {ok, Saved} ->
-          {reply, {ok, riakc_obj:key(Saved)}, DB};
+          ID = riakc_obj:key(Saved),
+          case flokk_cart:initialize(ID) of
+            ok ->
+              {reply, {ok, ID}, DB};
+            Other ->
+              {reply, Other, DB}
+          end;
         Other ->
           {reply, Other, DB}
       end;

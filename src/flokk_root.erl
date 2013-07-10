@@ -53,7 +53,16 @@ body(Req, State) ->
     ]}
   ]),
 
-  {Body5, Req, State}.
+  %% Item listing
+  Body6 = cowboy_resource_builder:authorize(<<"cart.read">>, Req, Body5, fun (UserID) ->
+      [
+        {<<"cart">>, [
+          {<<"href">>, cowboy_base:resolve([<<"carts">>, UserID], Req)}
+        ]}
+      ]
+  end),
+
+  {Body6, Req, State}.
 
 ttl(Req, State)->
   {3600, Req, State}.

@@ -4,6 +4,7 @@
 -export([terminate/4]).
 
 start(Req) ->
+  % io:format("~p~n",[cowboy_req:headers(Req)]),
   Req.
 
 terminate(Status, Headers, _Body, Req) ->

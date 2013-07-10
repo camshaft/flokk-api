@@ -59,6 +59,7 @@ rest_init(Req, Opts) ->
         {<<"GET">>, undefined} -> list;
         {<<"GET">>, _} -> read;
         {<<"POST">>, undefined} -> create;
+        {<<"POST">>, _} -> action;
         {<<"PUT">>, _} -> update;
         {<<"DELETE">>, _} -> delete
       end;
@@ -154,12 +155,13 @@ format_json({Body, Req, State}, Handler) ->
     <<>> -> Path;
     QS -> <<Path/binary,"?",QS/binary>>
   end,
+  UndefinedToNull = fun(undefined) -> null; (V) -> V end,
   JSON = jsx:encode([
     {<<"href">>, cowboy_base:resolve(URL, Req)},
     {<<"root">>, [
       {<<"href">>, cowboy_base:resolve(<<>>,Req)}
     ]}
-  |Body]),
+  |Body], [{pre_encode, UndefinedToNull}]),
   case erlang:function_exported(Handler, ttl, 2) of
     true ->
       {Time, Req2, State2} = Handler:ttl(Req, State#state{body=Body}),
@@ -174,11 +176,11 @@ variances(Req, State) ->
   lager:debug("resource:variances"),
   {[<<"authorization">>], Req, State}.
 
-resource_exists(Req, State = #state{handler = Handler, command = call}) ->
+resource_exists(Req, State = #state{handler = Handler, command = Command}) when Command =:= call orelse Command =:= action ->
   lager:debug("resource:resource_exists:call"),
-  case erlang:function_exported(Handler, call, 2) of
+  case erlang:function_exported(Handler, Command, 2) of
     true ->
-      case Handler:call(Req, State) of
+      case Handler:Command(Req, State) of
         {error, _, _} = Error ->
           Error;
         {false, _, _} = Error ->
@@ -234,6 +236,10 @@ from_json(Req, State = #state{command = create}) ->
   lager:debug("resource:from_json:create"),
   parse_json(Req, State, fun create_resource/4);
 
+from_json(Req, State = #state{command = action}) ->
+  lager:debug("resource:from_json:create"),
+  parse_json(Req, State, fun action_resource/4);
+
 from_json(Req, State = #state{command = update}) ->
   lager:debug("resource:from_json:update"),
   parse_json(Req, State, fun update_resource/4).
@@ -265,6 +271,9 @@ create_resource(Handler, Body, Req, State) ->
     {ID, Req2, State2} ->
       Handler:location(ID, Req2, State2)
   end.
+
+action_resource(Handler, Body, Req, State = #state{id = ID}) ->
+  Handler:action(ID, Body, Req, State).
 
 update_resource(Handler, Body, Req, State = #state{id = ID}) ->
   Handler:update(ID, Body, Req, State).

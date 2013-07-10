@@ -23,6 +23,9 @@ init([Backend]) ->
   RiakUrl = get_riak_url(),
   Procs = [
     %% Models
+    {flokk_cart,
+      {flokk_cart, start_link, [Backend]},
+      permanent, 5000, worker, [flokk_cart]},
     {flokk_category,
       {flokk_category, start_link, [Backend]},
       permanent, 5000, worker, [flokk_category]},

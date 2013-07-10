@@ -21,18 +21,12 @@ call(Req, State) ->
 
 body({ID, Sale}, Req, State) ->
   URL = cowboy_base:resolve([<<"items">>,ID,<<"sale">>], Req),
+  ItemUrl = cowboy_base:resolve([<<"items">>,ID], Req),
   Price = fast_key:get(<<"price">>, Sale, 3999),
 
   Body = [
     {<<"item">>, [
-      {<<"href">>, cowboy_base:resolve([<<"items">>,ID], Req)}
-    ]},
-    {<<"purchase">>, [
-      {<<"action">>, URL},
-      {<<"method">>, <<"POST">>},
-      {<<"input">>, [
-        %% TODO
-      ]}
+      {<<"href">>, ItemUrl}
     ]}
   ],
 
@@ -46,7 +40,40 @@ body({ID, Sale}, Req, State) ->
 
   ]),
 
-  {Body2, Req, State}.
+  %% TODO check if the item is available - do we have enough in stock?
+  Body3 = cowboy_resource_builder:authorize(<<"cart.add">>, Req, Body2, fun(UserID) ->
+    [
+      {<<"purchase">>, [
+        {<<"action">>, cowboy_base:resolve([<<"carts">>, UserID], Req)},
+        {<<"method">>, <<"POST">>},
+        {<<"input">>, [
+          {<<"offer">>, [
+            {<<"type">>, <<"hidden">>},
+            {<<"value">>, URL}
+          ]},
+          {<<"quantity">>, [
+            {<<"type">>, <<"select">>},
+            {<<"prompt">>, <<"Quantity">>},
+            {<<"value">>, 1},
+            %% TODO limit to stock
+            {<<"options">>, [
+              [
+                {<<"value">>, 1}
+              ],
+              [
+                {<<"value">>, 2}
+              ],
+              [
+                {<<"value">>, 3}
+              ]
+            ]}
+          ]}
+        ]}
+      ]}
+    ]
+  end),
+
+  {Body3, Req, State}.
 
 %% We'll need to figure out a good ttl
 ttl(Req, State)->

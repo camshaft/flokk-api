@@ -23,11 +23,13 @@ start(_Type, _Args) ->
       {dispatch, cowboy_router:compile(Routes)},
       {ss_token_secret, Secret},
       {ss_scopes_enum, ScopeEnum},
-      {token_handler, cowboy_resource_owner_simple_secrets}
+      {token_handler, cowboy_resource_owner_simple_secrets},
+      {cors, []}
     ]},
     {onrequest, fun flokk_hook:start/1},
     {onresponse, fun flokk_hook:terminate/4},
     {middlewares, [
+      cowboy_cors,
       cowboy_empty_favicon,
       cowboy_base,
       cowboy_resource_owner,
