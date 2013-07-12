@@ -228,8 +228,8 @@ resource_exists(Req, State = #state{command = update}) ->
 content_types_accepted(Req, State) ->
   lager:debug("resource:content_types_accepted"),
   {[
-    {{<<"application">>, <<"json">>, []}, from_json},
-    {{<<"application">>, <<"hyper+json">>, []}, from_json}
+    {{<<"application">>, <<"json">>, '*'}, from_json},
+    {{<<"application">>, <<"hyper+json">>, '*'}, from_json}
   ], Req, State}.
 
 from_json(Req, State = #state{command = create}) ->
