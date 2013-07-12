@@ -41,7 +41,7 @@ set(ID, Item, Quantity) ->
   gen_server:call(?MODULE, {set, ID, Item, Quantity}).
 
 remove(ID, Item) ->
-  gen_server:call(?MODULE, {delete, ID, Item}).
+  gen_server:call(?MODULE, {remove, ID, Item}).
 
 
 %% gen_server.
@@ -80,12 +80,15 @@ handle_call({set, ID, Item, Quantity}, _, DB) ->
       Cart = dict:from_list(DB:body(Obj)),
 
       UpdatedCart = dict:store(Item, Quantity, Cart),
+      StoredCart = dict:to_list(UpdatedCart),
 
-      Obj2 = DB:set_body(dict:to_list(UpdatedCart), Obj),
+      Obj2 = DB:set_body(StoredCart, Obj),
 
       case DB:put(Obj2) of
         {ok, _} ->
-          {reply, ok, DB};
+          {reply, {ok, StoredCart}, DB};
+        ok ->
+          {reply, {ok, StoredCart}, DB};
         Other ->
           {reply, Other, DB}
       end;
@@ -102,13 +105,17 @@ handle_call({remove, ID, Item}, _, DB) ->
       Cart = dict:from_list(DB:body(Obj)),
 
       UpdatedCart = dict:erase(Item, Cart),
+      StoredCart = dict:to_list(UpdatedCart),
 
-      Obj2 = DB:set_body(dict:to_list(UpdatedCart), Obj),
+      Obj2 = DB:set_body(StoredCart, Obj),
 
       case DB:put(Obj2) of
         {ok, _} ->
-          {reply, ok, DB};
+          {reply, {ok, StoredCart}, DB};
+        ok ->
+          {reply, {ok, StoredCart}, DB};
         Other ->
+          io:format("~p~n",[Other]),
           {reply, Other, DB}
       end;
     {error, _} = Error ->

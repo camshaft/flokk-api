@@ -5,7 +5,7 @@
 -export([validate/3]).
 -export([action/4]).
 
--define(SCOPE, [<<"cart.add">>, <<"cart.remove">>]).
+-define(SCOPE, [<<"cart.update">>]).
 
 init(Req, _Opts) ->
   {ok, Req, []}.
@@ -27,9 +27,15 @@ action(ID, Body, Req, State) ->
   end,
 
   case Result of
-    ok ->
-      Req2 = cowboy_req:set_resp_body(<<"{}">>, Req),
-      {true, Req2, State};
+    {ok, Cart} ->
+      {CartBody, Req2, State2} = flokk_cart_read:body(ID, Cart, Req, State),
+      JSON = jsx:encode(CartBody),
+      URL = cowboy_base:resolve([<<"carts">>, ID], Req2),
+      Req3 = cowboy_req:set_resp_header(<<"location">>, URL, Req2),
+      Req4 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req3),
+      Req5 = cowboy_req:set_resp_body(JSON, Req4),
+      {true, Req5, State2};
     _ ->
+      io:format("~p~n", [Result]),
       {error, 500, Req}
   end.

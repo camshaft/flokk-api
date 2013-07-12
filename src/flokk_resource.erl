@@ -165,7 +165,7 @@ format_json({Body, Req, State}, Handler) ->
   case erlang:function_exported(Handler, ttl, 2) of
     true ->
       {Time, Req2, State2} = Handler:ttl(Req, State#state{body=Body}),
-      CacheControl = <<"max-age=",(list_to_binary(integer_to_list(Time)))/binary,", must-revalidate">>,
+      CacheControl = <<"max-age=",(list_to_binary(integer_to_list(Time)))/binary,", must-revalidate, private">>,
       Req3 = cowboy_req:set_resp_header(<<"cache-control">>, CacheControl, Req2),
       {JSON, Req3, State2};
     false ->

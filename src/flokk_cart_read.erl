@@ -31,9 +31,11 @@ body(ID, Cart, Req, State) ->
   ],
 
   Body2 = cowboy_resource_builder:authorize(<<"cart.checkout">>, Req, Body, [
-    {<<"action">>, URL},
-    {<<"method">>, <<"POST">>},
-    {<<"input">>, []}
+    {<<"checkout">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"POST">>},
+      {<<"input">>, []}
+    ]}
   ]),
 
   {Body2, Req, State}.
@@ -41,7 +43,7 @@ body(ID, Cart, Req, State) ->
 format_item({Offer, Quantity}, URL, Req) ->
   Body = [
     {<<"quantity">>, Quantity},
-    {<<"offer">>, Offer}
+    {<<"href">>, Offer}
   ],
 
   cowboy_resource_builder:authorize(<<"cart.update">>, Req, Body, [

@@ -20,7 +20,6 @@ call(Req, State) ->
   end.
 
 body({ID, Sale}, Req, State) ->
-  URL = cowboy_base:resolve([<<"items">>,ID,<<"sale">>], Req),
   ItemUrl = cowboy_base:resolve([<<"items">>,ID], Req),
   Price = fast_key:get(<<"price">>, Sale, 3999),
 
@@ -41,7 +40,7 @@ body({ID, Sale}, Req, State) ->
   ]),
 
   %% TODO check if the item is available - do we have enough in stock?
-  Body3 = cowboy_resource_builder:authorize(<<"cart.add">>, Req, Body2, fun(UserID) ->
+  Body3 = cowboy_resource_builder:authorize(<<"cart.update">>, Req, Body2, fun(UserID) ->
     [
       {<<"purchase">>, [
         {<<"action">>, cowboy_base:resolve([<<"carts">>, UserID], Req)},
@@ -49,7 +48,7 @@ body({ID, Sale}, Req, State) ->
         {<<"input">>, [
           {<<"offer">>, [
             {<<"type">>, <<"hidden">>},
-            {<<"value">>, URL}
+            {<<"value">>, ItemUrl}
           ]},
           {<<"quantity">>, [
             {<<"type">>, <<"select">>},
