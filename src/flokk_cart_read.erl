@@ -24,10 +24,11 @@ read(ID, Req, State) ->
 body(ID, Cart, Req, State) ->
   URL = cowboy_base:resolve([<<"carts">>, ID], Req),
 
+  {FormattedItems, Count} = format_item(Cart, URL, Req, 0, []),
+
   Body = [
-    {<<"offer">>, [
-      format_item(Item, URL, Req) || Item <- Cart
-    ]}
+    {<<"offer">>, FormattedItems},
+    {<<"count">>, Count}
   ],
 
   Body2 = cowboy_resource_builder:authorize(<<"cart.checkout">>, Req, Body, [
@@ -40,13 +41,15 @@ body(ID, Cart, Req, State) ->
 
   {Body2, Req, State}.
 
-format_item({Offer, Quantity}, URL, Req) ->
+format_item([], _, _, Count, Acc) ->
+  {Acc, Count};
+format_item([{Offer, Quantity}|Items], URL, Req, Count, Acc) ->
   Body = [
     {<<"quantity">>, Quantity},
     {<<"href">>, Offer}
   ],
 
-  cowboy_resource_builder:authorize(<<"cart.update">>, Req, Body, [
+  Acc2 = [cowboy_resource_builder:authorize(<<"cart.update">>, Req, Body, [
     {<<"remove">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"POST">>},
@@ -63,7 +66,9 @@ format_item({Offer, Quantity}, URL, Req) ->
         ]}
       ]}
     ]}
-  ]).
+  ])|Acc],
+
+  format_item(Items, URL, Req, Count+Quantity, Acc2).
 
 ttl(Req, State) ->
   {30, Req, State}.
