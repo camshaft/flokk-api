@@ -66,4 +66,4 @@ format_item({Offer, Quantity}, URL, Req) ->
   ]).
 
 ttl(Req, State) ->
-  {3600, Req, State}.
+  {30, Req, State}.

@@ -29,8 +29,8 @@ action(ID, Body, Req, State) ->
   case Result of
     {ok, Cart} ->
       {CartBody, Req2, State2} = flokk_cart_read:body(ID, Cart, Req, State),
-      JSON = jsx:encode(CartBody),
       URL = cowboy_base:resolve([<<"carts">>, ID], Req2),
+      JSON = jsx:encode([{<<"href">>, URL}|CartBody]),
       Req3 = cowboy_req:set_resp_header(<<"location">>, URL, Req2),
       Req4 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req3),
       Req5 = cowboy_req:set_resp_body(JSON, Req4),
