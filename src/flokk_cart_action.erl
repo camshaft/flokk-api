@@ -34,7 +34,7 @@ action(ID, Body, Req, State) ->
       Req3 = cowboy_req:set_resp_header(<<"location">>, URL, Req2),
       Req4 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req3),
       Req5 = cowboy_req:set_resp_body(JSON, Req4),
-      {true, Req5, State2};
+      {ok, Req5, State2};
     _ ->
       io:format("~p~n", [Result]),
       {error, 500, Req}

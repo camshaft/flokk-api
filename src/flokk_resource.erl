@@ -51,8 +51,6 @@ rest_init(Req, Opts) ->
 
   ForcedCommand = proplists:get_value(command, Opts),
 
-  io:format("Scopes ~p~n", [cowboy_resource_owner:scopes(Req)]),
-
   Command = case ForcedCommand of
     undefined ->
       case {Method, ID} of
@@ -273,7 +271,13 @@ create_resource(Handler, Body, Req, State) ->
   end.
 
 action_resource(Handler, Body, Req, State = #state{id = ID}) ->
-  Handler:action(ID, Body, Req, State).
+  case Handler:action(ID, Body, Req, State) of
+    {ok, Req2, State2} ->
+      Req3 = cowboy_req:set_meta(pub_event, <<"update">>, Req2),
+      {true, Req3, State2};
+    Result ->
+      Result
+  end.
 
 update_resource(Handler, Body, Req, State = #state{id = ID}) ->
   Handler:update(ID, Body, Req, State).

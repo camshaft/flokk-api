@@ -21,6 +21,8 @@ start_link(Backend) ->
 
 init([Backend]) ->
   RiakUrl = get_riak_url(),
+  PusherURL = simple_env:get_binary("PUSHER_URL"),
+
   Procs = [
     %% Models
     {flokk_cart,
@@ -41,6 +43,9 @@ init([Backend]) ->
     {flokk_user,
       {flokk_user, start_link, [Backend]},
       permanent, 5000, worker, [flokk_user]},
+    {pusherl,
+      {pusherl, start_link, [PusherURL]},
+      permanent, 5000, worker, [pusherl]},
     %% Database
     {Backend,
       {Backend, start_link, [RiakUrl]},
