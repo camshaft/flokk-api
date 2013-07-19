@@ -31,18 +31,84 @@ body(ID, Cart, Req, State) ->
     {<<"count">>, Count}
   ],
 
-  Body2 = cowboy_resource_builder:authorize(<<"cart.checkout">>, Req, Body, [
-    {<<"checkout">>, [
-      {<<"action">>, URL},
+  %% Only show the checkout page if there's an item in the cart
+  Body2 = case Count of
+    0 ->
+      Body;
+    _ ->
+      cowboy_resource_builder:authorize(<<"cart.checkout">>, Req, Body, [
+        {<<"checkout">>, [
+          {<<"action">>, URL},
+          {<<"method">>, <<"POST">>},
+          {<<"input">>, [
+            {<<"shipping-address">>, [
+              {<<"type">>, <<"select">>},
+              {<<"prompt">>, <<"Shipping Address">>},
+              {<<"options">>, [
+                
+              ]}
+            ]},
+            {<<"credit-card">>, [
+              {<<"type">>, <<"select">>},
+              {<<"prompt">>, <<"Credit Card">>},
+              {<<"options">>, [
+                
+              ]}
+            ]}
+          ]}
+        ]}
+      ])
+  end,
+
+  UserID = cowboy_resource_owner:owner_id(Req),
+
+  %% TODO check if we have the information we need for them to check out
+
+  Body3 = cowboy_resource_builder:authorize(<<"cart.missing-info">>, Req, Body2, [
+    {<<"shipping">>, [
+      {<<"action">>, cowboy_base:resolve([<<"accounts">>, UserID], Req)},
       {<<"method">>, <<"POST">>},
-      {<<"input">>, []}
+      {<<"input">>, [
+        {<<"description">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"name">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"streetAddress">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"addressLocality">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"addressRegion">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"postalCode">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"addressCountry">>, [
+          {<<"type">>, <<"text">>}
+        ]}
+      ]}
+    ]},
+    {<<"billing">>, [
+      {<<"action">>, cowboy_base:resolve([<<"accounts">>, UserID], Req)},
+      {<<"method">>, <<"POST">>},
+      {<<"input">>, [
+        {<<"credit-card">>, [
+          {<<"type">>, <<"x-balanced-uri">>}
+        ]}
+      ]}
     ]}
   ]),
 
-  {Body2, Req, State}.
+  {Body3, Req, State}.
 
 format_item([], _, _, Count, Acc) ->
   {Acc, Count};
+format_item([{_, undefined}|Items], URL, Req, Count, Acc) ->
+  format_item(Items, URL, Req, Count, Acc);
 format_item([{Offer, Quantity}|Items], URL, Req, Count, Acc) ->
   Body = [
     {<<"quantity">>, Quantity},

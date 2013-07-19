@@ -39,8 +39,6 @@ body(ID, Client, Req, State) ->
     {<<"scopes">>, fast_key:get(<<"scopes">>, Client, null)}
   ]),
 
-  io:format("Client Output ~p~n", [Body5]),
-
   {Body5, Req, State}.
 
 ttl(Req, State) ->
