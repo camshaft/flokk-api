@@ -29,7 +29,7 @@ body(Req, State) ->
     UserID ->
       [
         {<<"account">>, [
-          {<<"href">>, cowboy_base:resolve([<<"users">>,UserID], Req)}
+          {<<"href">>, cowboy_base:resolve([<<"users">>, UserID], Req)}
         ]}
       |Body]
   end,

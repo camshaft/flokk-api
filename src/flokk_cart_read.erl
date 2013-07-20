@@ -38,72 +38,43 @@ body(ID, Cart, Req, State) ->
     _ ->
       cowboy_resource_builder:authorize(<<"cart.checkout">>, Req, Body, [
         {<<"checkout">>, [
-          {<<"action">>, URL},
+          {<<"action">>, cowboy_base:resolve([<<"carts">>, ID, <<"checkout">>], Req)},
           {<<"method">>, <<"POST">>},
           {<<"input">>, [
-            {<<"shipping-address">>, [
-              {<<"type">>, <<"select">>},
-              {<<"prompt">>, <<"Shipping Address">>},
-              {<<"options">>, [
-                
-              ]}
+            {<<"name">>, [
+              {<<"type">>, <<"text">>},
+              {<<"prompt">>, <<"Recipient Name">>}
             ]},
-            {<<"credit-card">>, [
-              {<<"type">>, <<"select">>},
-              {<<"prompt">>, <<"Credit Card">>},
-              {<<"options">>, [
-                
-              ]}
+            {<<"streetAddress">>, [
+              {<<"type">>, <<"text">>},
+              {<<"prompt">>, <<"Street">>}
+            ]},
+            {<<"addressLocality">>, [
+              {<<"type">>, <<"text">>},
+              {<<"prompt">>, <<"City/Locality">>}
+            ]},
+            {<<"addressRegion">>, [
+              {<<"type">>, <<"text">>},
+              {<<"prompt">>, <<"State/Region">>}
+            ]},
+            {<<"postalCode">>, [
+              {<<"type">>, <<"text">>},
+              {<<"prompt">>, <<"Postal Code">>}
+            ]},
+            {<<"addressCountry">>, [
+              {<<"type">>, <<"text">>},
+              {<<"prompt">>, <<"Country">>}
+            ]},
+            {<<"creditCard">>, [
+              {<<"type">>, <<"x-balanced-uri">>},
+              {<<"prompt">>, <<"Credit Card">>}
             ]}
           ]}
         ]}
       ])
   end,
 
-  UserID = cowboy_resource_owner:owner_id(Req),
-
-  %% TODO check if we have the information we need for them to check out
-
-  Body3 = cowboy_resource_builder:authorize(<<"cart.missing-info">>, Req, Body2, [
-    {<<"shipping">>, [
-      {<<"action">>, cowboy_base:resolve([<<"accounts">>, UserID], Req)},
-      {<<"method">>, <<"POST">>},
-      {<<"input">>, [
-        {<<"description">>, [
-          {<<"type">>, <<"text">>}
-        ]},
-        {<<"name">>, [
-          {<<"type">>, <<"text">>}
-        ]},
-        {<<"streetAddress">>, [
-          {<<"type">>, <<"text">>}
-        ]},
-        {<<"addressLocality">>, [
-          {<<"type">>, <<"text">>}
-        ]},
-        {<<"addressRegion">>, [
-          {<<"type">>, <<"text">>}
-        ]},
-        {<<"postalCode">>, [
-          {<<"type">>, <<"text">>}
-        ]},
-        {<<"addressCountry">>, [
-          {<<"type">>, <<"text">>}
-        ]}
-      ]}
-    ]},
-    {<<"billing">>, [
-      {<<"action">>, cowboy_base:resolve([<<"accounts">>, UserID], Req)},
-      {<<"method">>, <<"POST">>},
-      {<<"input">>, [
-        {<<"credit-card">>, [
-          {<<"type">>, <<"x-balanced-uri">>}
-        ]}
-      ]}
-    ]}
-  ]),
-
-  {Body3, Req, State}.
+  {Body2, Req, State}.
 
 format_item([], _, _, Count, Acc) ->
   {Acc, Count};

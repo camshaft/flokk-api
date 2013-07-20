@@ -271,10 +271,26 @@ create_resource(Handler, Body, Req, State) ->
   end.
 
 action_resource(Handler, Body, Req, State = #state{id = ID}) ->
-  case Handler:action(ID, Body, Req, State) of
+  Action = case fast_key:get(<<"action">>, Body) of
+    undefined ->
+      action;
+    BinAction ->
+      binary_to_atom(BinAction, utf8)
+  end,
+  case Handler:Action(ID, Body, Req, State) of
     {ok, Req2, State2} ->
       Req3 = cowboy_req:set_meta(pub_event, <<"update">>, Req2),
       {true, Req3, State2};
+    {ResBody, Req2, State2} when is_list(ResBody) ->
+      Req3 = cowboy_req:set_meta(pub_event, <<"update">>, Req2),
+      case format_json({ResBody, Req3, State2}, Handler) of
+        {JSON, Req4, State3} ->
+          Req5 = cowboy_req:set_resp_body(JSON, Req4),
+          {true, Req5, State3};
+        _Err ->
+          io:format("~p~n", [_Err]),
+          {false, Req2, State2}
+      end;
     Result ->
       Result
   end.

@@ -10,6 +10,7 @@
 -export([update/2]).
 -export([delete/1]).
 -export([find/1]).
+-export([add_credit_card/2]).
 
 %% gen_server.
 -export([init/1]).
@@ -50,6 +51,9 @@ delete(ID) ->
 
 find(Query) ->
   gen_server:call(?MODULE, {find, Query}).
+
+add_credit_card(ID, CreditCard) ->
+  gen_server:call(?MODULE, {add_credit_card, ID, CreditCard}).
 
 
 %% gen_server.
@@ -115,6 +119,34 @@ handle_call({find, Query}, _, DB) ->
       {reply, {ok, []}, DB};
     Other ->
       {reply, Other, DB}
+  end;
+handle_call({add_credit_card, ID, CreditCard}, _, DB) ->
+  case DB:get(?BUCKET, ID) of
+    {ok, Obj} ->
+
+      User = DB:body(Obj),
+
+      Cards = fast_key:get(<<"credit_cards">>, User, []),
+
+      %% TODO check to see if we already have the hash in the list
+      UpdatedCards = [CreditCard|Cards],
+
+      UpdatedUser = fast_key:set(<<"credit_cards">>, UpdatedCards, User),
+
+      Obj2 = DB:set_body(UpdatedUser, Obj),
+
+      case DB:put(Obj2) of
+        {ok, _} ->
+          {reply, {ok, UpdatedUser}, DB};
+        ok ->
+          {reply, {ok, UpdatedUser}, DB};
+        Other ->
+          {reply, Other, DB}
+      end;
+    {error, _} = Error ->
+      {reply, Error, DB};
+    _ ->
+      {reply, {error, not_found}, DB}
   end;
 handle_call(ping, _, DB) ->
   {reply, DB:ping(), DB};

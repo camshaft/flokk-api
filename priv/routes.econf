@@ -45,6 +45,10 @@
   {"/carts/:id", flokk_resource, [
     {resource, flokk_cart}
   ]},
+  {"/carts/:id/checkout", flokk_resource, [
+    {resource, flokk_cart},
+    {command, checkout}
+  ]},
 
   {"/clients", flokk_resource, [
     {resource, flokk_client_root},
