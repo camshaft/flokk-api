@@ -20,7 +20,7 @@ call(Req, State) ->
   end.
 
 body({ID, Sale}, Req, State) ->
-  ItemUrl = cowboy_base:resolve([<<"items">>,ID], Req),
+  ItemUrl = cowboy_base:resolve([<<"items">>, ID], Req),
   Price = fast_key:get(<<"price">>, Sale, 3999),
 
   Body = [

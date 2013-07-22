@@ -19,14 +19,18 @@ body(ID, Category, Req, State) ->
   URL = cowboy_base:resolve([<<"category">>,ID], Req),
   Title = fast_key:get(<<"title">>, Category, <<>>),
 
-  Body = [
+  P = presenterl:create(),
+
+  P ! [
     {<<"title">>, Title},
     {<<"items">>, [
       {<<"href">>, cowboy_base:resolve([<<"categories">>,ID,<<"items">>], Req)}
     ]}
   ],
 
-  Body1 = cowboy_resource_builder:authorize(<<"category.update">>, Req, Body, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"category.update">>], Req)
+  ], [
     {<<"action">>, URL},
     {<<"method">>, <<"POST">>},
     {<<"input">>, [
@@ -35,14 +39,18 @@ body(ID, Category, Req, State) ->
         {<<"value">>, Title}
       ]}
     ]}
-  ]),
+  ], P),
 
-  Body2 = cowboy_resource_builder:authorize(<<"category.delete">>, Req, Body1, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"category.delete">>], Req)
+  ], [
     {<<"action">>, URL},
     {<<"method">>, <<"DELETE">>}
-  ]),
+  ], P),
 
-  {Body2, Req, State}.
+  Body = presenterl:encode(P),
+
+  {Body, Req, State}.
 
 ttl(Req, State) ->
   {3600, Req, State}.

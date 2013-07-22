@@ -24,69 +24,72 @@ read(ID, Req, State) ->
 body(ID, Cart, Req, State) ->
   URL = cowboy_base:resolve([<<"carts">>, ID], Req),
 
-  {FormattedItems, Count} = format_item(Cart, URL, Req, 0, []),
+  {FormattedItems, Count} = format_item(Cart, URL, Req),
 
-  Body = [
+  P = presenterl:create(),
+
+  P ! [
     {<<"offer">>, FormattedItems},
     {<<"count">>, Count}
   ],
 
-  %% Only show the checkout page if there's an item in the cart
-  Body2 = case Count of
-    0 ->
-      Body;
-    _ ->
-      cowboy_resource_builder:authorize(<<"cart.checkout">>, Req, Body, [
-        {<<"checkout">>, [
-          {<<"action">>, cowboy_base:resolve([<<"carts">>, ID, <<"checkout">>], Req)},
-          {<<"method">>, <<"POST">>},
-          {<<"input">>, [
-            {<<"name">>, [
-              {<<"type">>, <<"text">>},
-              {<<"prompt">>, <<"Recipient Name">>}
-            ]},
-            {<<"streetAddress">>, [
-              {<<"type">>, <<"text">>},
-              {<<"prompt">>, <<"Street">>}
-            ]},
-            {<<"addressLocality">>, [
-              {<<"type">>, <<"text">>},
-              {<<"prompt">>, <<"City/Locality">>}
-            ]},
-            {<<"addressRegion">>, [
-              {<<"type">>, <<"text">>},
-              {<<"prompt">>, <<"State/Region">>}
-            ]},
-            {<<"postalCode">>, [
-              {<<"type">>, <<"text">>},
-              {<<"prompt">>, <<"Postal Code">>}
-            ]},
-            {<<"addressCountry">>, [
-              {<<"type">>, <<"text">>},
-              {<<"prompt">>, <<"Country">>}
-            ]},
-            {<<"creditCard">>, [
-              {<<"type">>, <<"x-balanced-uri">>},
-              {<<"prompt">>, <<"Credit Card">>}
-            ]}
-          ]}
+  presenterl:conditional([
+    Count =/= 0,
+    cowboy_resource_owner:is_authorized(<<"cart.checkout">>, Req)
+  ], [
+    {<<"checkout">>, [
+      {<<"action">>, cowboy_base:resolve([<<"carts">>, ID, <<"checkout">>], Req)},
+      {<<"method">>, <<"POST">>},
+      {<<"input">>, [
+        {<<"name">>, [
+          {<<"type">>, <<"text">>},
+          {<<"prompt">>, <<"Recipient Name">>}
+        ]},
+        {<<"streetAddress">>, [
+          {<<"type">>, <<"text">>},
+          {<<"prompt">>, <<"Street">>}
+        ]},
+        {<<"addressLocality">>, [
+          {<<"type">>, <<"text">>},
+          {<<"prompt">>, <<"City/Locality">>}
+        ]},
+        {<<"addressRegion">>, [
+          {<<"type">>, <<"text">>},
+          {<<"prompt">>, <<"State/Region">>}
+        ]},
+        {<<"postalCode">>, [
+          {<<"type">>, <<"text">>},
+          {<<"prompt">>, <<"Postal Code">>}
+        ]},
+        {<<"addressCountry">>, [
+          {<<"type">>, <<"text">>},
+          {<<"prompt">>, <<"Country">>}
+        ]},
+        {<<"creditCard">>, [
+          {<<"type">>, <<"x-balanced-uri">>},
+          {<<"prompt">>, <<"Credit Card">>}
         ]}
-      ])
-  end,
+      ]}
+    ]}
+  ], P),
 
-  {Body2, Req, State}.
+  Body = presenterl:encode(P),
 
-format_item([], _, _, Count, Acc) ->
-  {Acc, Count};
-format_item([{_, undefined}|Items], URL, Req, Count, Acc) ->
-  format_item(Items, URL, Req, Count, Acc);
-format_item([{Offer, Quantity}|Items], URL, Req, Count, Acc) ->
-  Body = [
+  {Body, Req, State}.
+
+format_item(Items, URL, Req) ->
+  P = presenterl:create(),
+  OwnerID = cowboy_resource_owner:owner_id(Req),
+  Count = format_item(Items, URL, Req, 0, OwnerID, P),
+  {presenterl:encode(P), Count}.
+
+format_item([], _, _, Count, _, _) ->
+  Count;
+format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_integer(Quantity) ->
+  P ! {add, cowboy_resource_builder:authorize([OwnerID, undefined], <<"cart.update">>, Req, [
     {<<"quantity">>, Quantity},
     {<<"href">>, Offer}
-  ],
-
-  Acc2 = [cowboy_resource_builder:authorize(<<"cart.update">>, Req, Body, [
+  ], [
     {<<"remove">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"POST">>},
@@ -103,9 +106,10 @@ format_item([{Offer, Quantity}|Items], URL, Req, Count, Acc) ->
         ]}
       ]}
     ]}
-  ])|Acc],
-
-  format_item(Items, URL, Req, Count+Quantity, Acc2).
+  ])},
+  format_item(Items, URL, Req, Count+Quantity, OwnerID, P);
+format_item([{_, _}|Items], URL, Req, Count, OwnerID, P) ->
+  format_item(Items, URL, Req, Count, OwnerID, P).
 
 ttl(Req, State) ->
   {30, Req, State}.

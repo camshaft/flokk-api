@@ -14,9 +14,11 @@ scope(Req, State) ->
   {?SCOPE, Req, State}.
 
 body(Req, State) ->
-  Body = [],
+  P = presenterl:create(),
 
-  Body2 = cowboy_resource_builder:authorize(<<"client.find">>, Req, Body, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"client.find">>], Req)
+  ], [
     {<<"find">>, [
       {<<"action">>, cowboy_base:resolve([<<"clients">>,<<"find">>], Req)},
       {<<"method">>, <<"GET">>},
@@ -26,19 +28,39 @@ body(Req, State) ->
         ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  Body3 = cowboy_resource_builder:authorize(<<"client.create">>, Req, Body2, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"client.create">>], Req)
+  ], [
     {<<"create">>, [
       {<<"action">>, cowboy_base:resolve([<<"clients">>], Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
-        %% TODO figure out these fields
+        {<<"name">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"description">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"redirect_uri">>, [
+          {<<"type">>, <<"url">>},
+          {<<"multiple">>, true}
+        ]},
+        {<<"scopes">>, [
+          {<<"type">>, <<"application/x-oauth-client-scope">>},
+          {<<"multiple">>, true},
+          {<<"options">>, [
+            %% TODO populate the available scopes
+          ]}
+        ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  {Body3, Req, State}.
+  Body = presenterl:encode(P),
+
+  {Body, Req, State}.
 
 ttl(Req, State)->
   {3600, Req, State}.

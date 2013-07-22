@@ -16,30 +16,34 @@ read(ID, Req, State) ->
   end.
 
 body(ID, Client, Req, State) ->
+  P = presenterl:create(),
 
-  Body = [
-    {<<"name">>, fast_key:get(<<"name">>, Client, null)},
-    {<<"description">>, fast_key:get(<<"description">>, Client, null)}
+  P ! [
+    {<<"name">>, fast_key:get(<<"name">>, Client)},
+    {<<"description">>, fast_key:get(<<"description">>, Client)}
   ],
 
-  Body2 = cowboy_resource_builder:authorize(<<"client.id">>, Req, Body, [
-    {<<"id">>, ID},
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"client.id">>], Req)
+  ], [
+    {<<"id">>, ID}
+  ], P),
+
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"client.internal">>], Req)
+  ], [
     {<<"internal">>, fast_key:get(<<"internal">>, Client, false)}
-  ]),
+  ], P),
 
-  Body3 = cowboy_resource_builder:authorize(<<"client.secret">>, Req, Body2, [
-    {<<"secret">>, fast_key:get(<<"secret">>, Client, null)}
-  ]),
+  [presenterl:conditional([
+    cowboy_resource_owner:is_authorized([<<"client.", Prop/binary>>], Req)
+  ], [
+    {Prop, fast_key:get(Prop, Client)}
+  ], P) || Prop <- [<<"secret">>, <<"redirect_uri">>, <<"scopes">>]],
 
-  Body4 = cowboy_resource_builder:authorize(<<"client.redirect_uri">>, Req, Body3, [
-    {<<"redirect_uri">>, fast_key:get(<<"redirect_uri">>, Client, null)}
-  ]),
+  Body = presenterl:encode(P),
 
-  Body5 = cowboy_resource_builder:authorize(<<"client.scopes">>, Req, Body4, [
-    {<<"scopes">>, fast_key:get(<<"scopes">>, Client, null)}
-  ]),
-
-  {Body5, Req, State}.
+  {Body, Req, State}.
 
 ttl(Req, State) ->
   {3600, Req, State}.

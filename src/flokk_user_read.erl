@@ -16,43 +16,52 @@ read(ID, Req, State) ->
   end.
 
 body(ID, User, Req, State) ->
+  IsOwner = case cowboy_resource_owner:owner_id(Req) of
+    ID -> true;
+    undefined -> true;
+    _ -> false
+  end,
+
+  P = presenterl:create(),
+
   URL = cowboy_base:resolve([<<"users">>,ID], Req),
 
-  Body = [],
-
-  Body2 = cowboy_resource_builder:authorize([ID, undefined], <<"user.id">>, Req, Body, [
+  presenterl:conditional([
+    IsOwner,
+    cowboy_resource_owner:is_authorized(<<"user.id">>, Req)
+  ], [
     {<<"id">>, ID}
-  ]),
+  ], P),
 
-  Body3 = cowboy_resource_builder:authorize([ID, undefined], <<"user.email">>, Req, Body2, [
-    {<<"email">>, fast_key:get(<<"email">>, User)}
-  ]),
+  [presenterl:conditional([
+    IsOwner,
+    cowboy_resource_owner:is_authorized([<<"user.", Prop/binary>>], Req)
+  ], [
+    {Prop, fast_key:get(Prop, User)}
+  ], P) || Prop <- [<<"email">>, <<"birthday">>, <<"passhash">>, <<"name">>]],
 
-  Body4 = cowboy_resource_builder:authorize([ID, undefined], <<"user.birthday">>, Req, Body3, [
-    {<<"birthday">>, fast_key:get(<<"birthday">>, User)}
-  ]),
-
-  Body5 = cowboy_resource_builder:authorize([ID, undefined], <<"user.passhash">>, Req, Body4, [
-    {<<"passhash">>, fast_key:get(<<"passhash">>, User)}
-  ]),
-
-  Body6 = cowboy_resource_builder:authorize([ID, undefined], <<"user.name">>, Req, Body5, [
-    {<<"name">>, fast_key:get(<<"name">>, User)}
-  ]),
-
-  Body7 = cowboy_resource_builder:authorize(ID, <<"user.credit-card.read">>, Req, Body6, [
-    {<<"creditCard">>, [
-      format_credit_card(Card, URL, Req) || Card <- fast_key:get(<<"credit_cards">>, User, [])
-    ]}
-  ]),
-
-  Body8 = cowboy_resource_builder:authorize(<<"cart.read">>, Req, Body7, [
+  presenterl:conditional([
+    IsOwner,
+    cowboy_resource_owner:is_authorized(<<"cart.read">>, Req)
+  ], [
     {<<"cart">>, [
       {<<"href">>, cowboy_base:resolve([<<"carts">>, ID], Req)}
     ]}
-  ]),
+  ], P),
 
-  Body9 = cowboy_resource_builder:authorize(ID, <<"user.update">>, Req, Body8, [
+  presenterl:conditional([
+    IsOwner,
+    cowboy_resource_owner:is_authorized(<<"user.credit-card.read">>, Req)
+  ], [
+    {<<"creditCard">>, [
+      format_credit_card(Card, URL, Req) || Card <- fast_key:get(<<"credit_cards">>, User, [])
+    ]}
+  ], P),
+
+  presenterl:conditional([
+    IsOwner,
+    cowboy_resource_owner:is_authorized(<<"user.update">>, Req)
+  ], [
     {<<"update">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"POST">>},
@@ -90,9 +99,12 @@ body(ID, User, Req, State) ->
         ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  Body10 = cowboy_resource_builder:authorize(ID, <<"user.credit-card.update">>, Req, Body9, [
+  presenterl:conditional([
+    IsOwner,
+    cowboy_resource_owner:is_authorized(<<"user.update">>, Req)
+  ], [
     {<<"createCreditCard">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"POST">>},
@@ -127,12 +139,17 @@ body(ID, User, Req, State) ->
         ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  {Body10, Req, State}.
+  Body = presenterl:encode(P),
+
+  {Body, Req, State}.
 
 format_credit_card(Card, UserURL, Req) ->
   URL = fast_key:get(<<"url">>, Card),
+
+  %% Don't use presenterl here because it's one conditional
+
   cowboy_resource_builder:authorize(<<"user.credit-card.update">>, Req, [
     {<<"profile">>, [
       {<<"href">>, <<"http://alps.io/schema.org/CreditCard.xml">>}

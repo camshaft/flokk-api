@@ -16,7 +16,7 @@ read(ID, Req, State) ->
   end.
 
 body(ID, Item, Req, State) ->
-  URL = cowboy_base:resolve([<<"items">>,ID], Req),
+  URL = cowboy_base:resolve([<<"items">>, ID], Req),
   Name = fast_key:get(<<"name">>, Item, <<>>),
   Description = fast_key:get(<<"description">>, Item, <<>>),
   Category = fast_key:get(<<"category">>, Item, <<"misc">>),
