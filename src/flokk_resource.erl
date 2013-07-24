@@ -267,7 +267,8 @@ create_resource(Handler, Body, Req, State) ->
   case Handler:create(Body, Req, State) of
     {error, _, _} = Error -> Error;
     {ID, Req2, State2} ->
-      Handler:location(ID, Req2, State2)
+      {Loc, Req3, State3} = Handler:location(ID, Req2, State2),
+      {{true, Loc}, Req3, State3}
   end.
 
 action_resource(Handler, Body, Req, State = #state{id = ID}) ->

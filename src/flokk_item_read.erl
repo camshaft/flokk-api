@@ -31,7 +31,9 @@ body(ID, Item, Req, State) ->
   Images = fast_key:get(<<"images">>, Item, <<>>),
   _Options = fast_key:get(<<"options">>, Item, []),
 
-  Body = [
+  P = presenterl:create(),
+
+  P ! [
     {<<"profile">>, [
       {<<"href">>, <<"http://alps.io/schema.org/ItemPage.xml">>}
     ]},
@@ -42,14 +44,17 @@ body(ID, Item, Req, State) ->
     {<<"currency">>, Currency},
     {<<"sku">>, ID},
     {<<"keywords">>, Keywords},
+    {<<"watchers">>, [
+      {<<"href">>, cowboy_base:resolve([<<"items">>, ID, <<"watchers">>], Req)}
+    ]},
     {<<"offers">>, [
-      {<<"href">>, cowboy_base:resolve([<<"items">>,ID,<<"sale">>], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"items">>, ID, <<"sale">>], Req)}
     ]},
     {<<"category">>, [
-      {<<"href">>, cowboy_base:resolve([<<"categories">>,Category], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"categories">>, Category], Req)}
     ]},
     {<<"publisher">>, [
-      {<<"href">>, cowboy_base:resolve([<<"vendors">>,VendorID], Req)},
+      {<<"href">>, cowboy_base:resolve([<<"vendors">>, VendorID], Req)},
       {<<"title">>, VendorTitle}
     ]},
     {<<"image">>, [
@@ -64,7 +69,9 @@ body(ID, Item, Req, State) ->
     ]}
   ],
 
-  Body1 = cowboy_resource_builder:authorize(<<"item.update">>, Req, Body, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"item.update">>, Req)
+  ], [
     {<<"update">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"PUT">>},
@@ -106,14 +113,20 @@ body(ID, Item, Req, State) ->
         % ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  Body2 = cowboy_resource_builder:authorize(<<"item.delete">>, Req, Body1, [
-    {<<"action">>, URL},
-    {<<"method">>, <<"DELETE">>}
-  ]),
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"item.delete">>, Req)
+  ], [
+    {<<"delete">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"DELETE">>}
+    ]}
+  ], P),
 
-  {Body2, Req, State}.
+  Body = presenterl:encode(P),
+
+  {Body, Req, State}.
 
 ttl(Req, State) ->
   {3600, Req, State}.

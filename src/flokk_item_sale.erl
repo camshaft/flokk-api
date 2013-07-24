@@ -21,31 +21,45 @@ call(Req, State) ->
 
 body({ID, Sale}, Req, State) ->
   ItemUrl = cowboy_base:resolve([<<"items">>, ID], Req),
-  Price = fast_key:get(<<"price">>, Sale, 3999),
+  Ending = fast_key:get(<<"ending">>, Sale),
+  Price = fast_key:get(<<"price">>, Sale, 0),
 
-  Body = [
+  P = presenterl:create(),
+
+  P ! [
     {<<"item">>, [
       {<<"href">>, ItemUrl}
     ]}
   ],
 
-  Body1 = case fast_key:get(<<"ending">>, Sale) of
-    undefined -> Body;
-    Ending -> lists:concat([Body, [{<<"ending">>, Ending}, {<<"price">>, Price}]])
-  end,
+  presenterl:conditional([
+    Ending =/= undefined
+  ], [
+    {<<"ending">>, Ending},
+    {<<"price">>, Price}
+  ], P),
 
   %% TODO show the sale stats
-  Body2 = cowboy_resource_builder:authorize(<<"sale.info">>, Req, Body1, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"sale.info">>, Req)
+  ], [
 
-  ]),
+  ], P),
 
-  %% TODO check if the item is available - do we have enough in stock?
-  Body3 = cowboy_resource_builder:authorize(<<"cart.update">>, Req, Body2, fun(UserID) ->
+  %% TODO show if we have stock
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"cart.update">>, Req)
+  ], fun() ->
+    OwnerID = cowboy_resource_owner:owner_id(Req),
     [
       {<<"purchase">>, [
-        {<<"action">>, cowboy_base:resolve([<<"carts">>, UserID], Req)},
+        {<<"action">>, cowboy_base:resolve([<<"carts">>, OwnerID], Req)},
         {<<"method">>, <<"POST">>},
         {<<"input">>, [
+          {<<"action">>, [
+            {<<"type">>, <<"hidden">>},
+            {<<"value">>, <<"add">>}
+          ]},
           {<<"offer">>, [
             {<<"type">>, <<"hidden">>},
             {<<"value">>, ItemUrl}
@@ -70,9 +84,11 @@ body({ID, Sale}, Req, State) ->
         ]}
       ]}
     ]
-  end),
+  end, P),
 
-  {Body3, Req, State}.
+  Body = presenterl:encode(P),
+
+  {Body , Req, State}.
 
 %% We'll need to figure out a good ttl
 ttl(Req, State)->

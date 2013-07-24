@@ -23,8 +23,9 @@ read(ID, Req, State) ->
 
 body(ID, Cart, Req, State) ->
   URL = cowboy_base:resolve([<<"carts">>, ID], Req),
+  OwnerID = cowboy_resource_owner:owner_id(Req),
 
-  {FormattedItems, Count} = format_item(Cart, URL, Req),
+  {FormattedItems, Count} = format_item(Cart, URL, OwnerID, Req),
 
   P = presenterl:create(),
 
@@ -37,6 +38,9 @@ body(ID, Cart, Req, State) ->
     Count =/= 0,
     cowboy_resource_owner:is_authorized(<<"cart.checkout">>, Req)
   ], [
+    {<<"addresses">>, [
+      {<<"href">>, cowboy_base:resolve([<<"users">>, OwnerID], Req)}
+    ]},
     {<<"checkout">>, [
       {<<"action">>, cowboy_base:resolve([<<"carts">>, ID, <<"checkout">>], Req)},
       {<<"method">>, <<"POST">>},
@@ -77,9 +81,8 @@ body(ID, Cart, Req, State) ->
 
   {Body, Req, State}.
 
-format_item(Items, URL, Req) ->
+format_item(Items, URL, OwnerID, Req) ->
   P = presenterl:create(),
-  OwnerID = cowboy_resource_owner:owner_id(Req),
   Count = format_item(Items, URL, Req, 0, OwnerID, P),
   {presenterl:encode(P), Count}.
 
@@ -90,10 +93,34 @@ format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_inte
     {<<"quantity">>, Quantity},
     {<<"href">>, Offer}
   ], [
+    {<<"update">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"POST">>},
+      {<<"input">>, [
+        {<<"action">>, [
+          {<<"type">>, <<"hidden">>},
+          {<<"value">>, <<"update">>}
+        ]},
+        {<<"quantity">>, [
+          {<<"type">>, <<"range">>},
+          {<<"value">>, Quantity},
+          {<<"prompt">>, <<"Quantity">>}
+        ]},
+        {<<"offer">>, [
+          {<<"type">>, <<"hidden">>},
+          {<<"value">>, Offer},
+          {<<"prompt">>, <<"Quantity">>}
+        ]}
+      ]}
+    ]},
     {<<"remove">>, [
       {<<"action">>, URL},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
+        {<<"action">>, [
+          {<<"type">>, <<"hidden">>},
+          {<<"value">>, <<"remove">>}
+        ]},
         {<<"quantity">>, [
           {<<"type">>, <<"hidden">>},
           {<<"value">>, 0},

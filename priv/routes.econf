@@ -22,9 +22,6 @@
   {"/items/:id/watchers", flokk_resource, [
     {resource, flokk_watcher}
   ]},
-  % {"/users/:user/history", flokk_user_history, [
-  %   {resource, flokk_user_history}
-  % ]},
 
   {"/vendors[/:id]", flokk_resource, [
     {resource, flokk_vendor}
@@ -40,6 +37,9 @@
   ]},
   {"/users[/:id]", flokk_resource, [
     {resource, flokk_user}
+  ]},
+  {"/users/:id/watches", flokk_resource, [
+    {resource, flokk_user_watches}
   ]},
 
   {"/carts/:id", flokk_resource, [

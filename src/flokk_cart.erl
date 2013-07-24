@@ -7,6 +7,7 @@
 -export([read/1]).
 -export([initialize/1]).
 -export([set/3]).
+-export([add/3]).
 -export([remove/2]).
 
 %% gen_server.
@@ -39,6 +40,9 @@ initialize(ID) ->
 
 set(ID, Item, Quantity) ->
   gen_server:call(?MODULE, {set, ID, Item, Quantity}).
+
+add(ID, Item, Quantity) ->
+  gen_server:call(?MODULE, {add, ID, Item, Quantity}).
 
 remove(ID, Item) ->
   gen_server:call(?MODULE, {remove, ID, Item}).
@@ -80,6 +84,40 @@ handle_call({set, ID, Item, Quantity}, _, DB) ->
       Cart = dict:from_list(DB:body(Obj)),
 
       UpdatedCart = dict:store(Item, Quantity, Cart),
+      StoredCart = dict:to_list(UpdatedCart),
+
+      Obj2 = DB:set_body(StoredCart, Obj),
+
+      case DB:put(Obj2) of
+        {ok, _} ->
+          {reply, {ok, StoredCart}, DB};
+        ok ->
+          {reply, {ok, StoredCart}, DB};
+        Other ->
+          {reply, Other, DB}
+      end;
+    {error, _} = Error ->
+      {reply, Error, DB};
+    _ ->
+      {reply, {error, not_found}, DB}
+  end;
+handle_call({add, ID, Item, Quantity}, _, DB) ->
+  %% TODO use a better crdt
+  case DB:get(?BUCKET, ID) of
+    {ok, Obj} ->
+
+      Cart = dict:from_list(DB:body(Obj)),
+
+      PrevAmount = case dict:find(Item, Cart) of
+        {ok, Prev} ->
+          Prev;
+        _ ->
+          0
+      end,
+
+      NewAmount = Quantity + PrevAmount,
+
+      UpdatedCart = dict:store(Item, NewAmount, Cart),
       StoredCart = dict:to_list(UpdatedCart),
 
       Obj2 = DB:set_body(StoredCart, Obj),

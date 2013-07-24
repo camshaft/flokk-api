@@ -8,7 +8,9 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 body(Req, State) ->
-  Body = [
+  P = presenterl:create(),
+
+  P ! [
     % {<<"sales">>, [
     %   {<<"href">>, cowboy_base:resolve(<<"sales">>, Req)},
     %   {<<"title">>, <<"Sales">>}
@@ -24,45 +26,54 @@ body(Req, State) ->
   ],
 
   %% User specific links
-  Body2 = case cowboy_resource_owner:owner_id(Req) of
-    undefined -> Body;
-    UserID ->
-      [
+  case cowboy_resource_owner:owner_id(Req) of
+    undefined ->
+      noop;
+    OwnerID ->
+      presenterl:conditional([
+        OwnerID =/= undefined
+      ], [
         {<<"account">>, [
-          {<<"href">>, cowboy_base:resolve([<<"users">>, UserID], Req)}
+          {<<"href">>, cowboy_base:resolve([<<"users">>, OwnerID], Req)}
         ]}
-      |Body]
+      ], P),
+      presenterl:conditional([
+        cowboy_resource_owner:is_authorized(<<"cart.read">>, Req)
+      ], [
+        {<<"cart">>, [
+          {<<"href">>, cowboy_base:resolve([<<"carts">>, OwnerID], Req)}
+        ]}
+      ], P)
   end,
 
   %% Auth links
-  Body3 = cowboy_resource_builder:authorize(<<"user">>, Req, Body2, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"user">>, Req)
+  ], [
     {<<"users">>, [
-      {<<"href">>, cowboy_base:resolve(<<"users">>, Req)}
+      {<<"href">>, cowboy_base:resolve([<<"users">>], Req)}
     ]}
-  ]),
-  Body4 = cowboy_resource_builder:authorize(<<"client">>, Req, Body3, [
+  ], P),
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"client">>, Req)
+  ], [
     {<<"clients">>, [
-      {<<"href">>, cowboy_base:resolve(<<"clients">>, Req)}
+      {<<"href">>, cowboy_base:resolve([<<"clients">>], Req)}
     ]}
-  ]),
+  ], P),
 
   %% Item listing
-  Body5 = cowboy_resource_builder:authorize(<<"item.list">>, Req, Body4, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"item.list">>, Req)
+  ], [
     {<<"items">>, [
-      {<<"href">>, cowboy_base:resolve(<<"items">>, Req)}
+      {<<"href">>, cowboy_base:resolve([<<"items">>], Req)}
     ]}
-  ]),
+  ], P),
 
-  %% Item listing
-  Body6 = cowboy_resource_builder:authorize(<<"cart.read">>, Req, Body5, fun (UserID) ->
-      [
-        {<<"cart">>, [
-          {<<"href">>, cowboy_base:resolve([<<"carts">>, UserID], Req)}
-        ]}
-      ]
-  end),
+  Body = presenterl:encode(P),
 
-  {Body6, Req, State}.
+  {Body, Req, State}.
 
 ttl(Req, State)->
   {3600, Req, State}.

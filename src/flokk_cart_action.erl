@@ -3,7 +3,8 @@
 -export([init/2]).
 -export([scope/2]).
 -export([validate/3]).
--export([action/4]).
+-export([add/4]).
+-export([remove/4]).
 
 -define(SCOPE, [<<"cart.update">>]).
 
@@ -17,25 +18,29 @@ scope(Req, State) ->
 validate(_Body, Req, State) ->
   {true, Req, State}.
 
-action(ID, Body, Req, State) ->
+add(ID, Body, Req, State) ->
   Offer = fast_key:get(<<"offer">>, Body),
-  Result = case fast_key:get(<<"quantity">>, Body) of
-    0 ->
-      flokk_cart:remove(ID, Offer);
-    Quantity ->
-      flokk_cart:set(ID, Offer, Quantity)
-  end,
+  Quantity = fast_key:get(<<"quantity">>, Body),
 
-  case Result of
+  case flokk_cart:add(ID, Offer, Quantity) of
     {ok, Cart} ->
-      {CartBody, Req2, State2} = flokk_cart_read:body(ID, Cart, Req, State),
-      URL = cowboy_base:resolve([<<"carts">>, ID], Req2),
-      JSON = jsx:encode([{<<"href">>, URL}|CartBody]),
-      Req3 = cowboy_req:set_resp_header(<<"location">>, URL, Req2),
-      Req4 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req3),
-      Req5 = cowboy_req:set_resp_body(JSON, Req4),
-      {ok, Req5, State2};
+      UserID = cowboy_resource_owner:owner_id(Req),
+      URL = cowboy_base:resolve([<<"carts">>, UserID], Req),
+      Req2 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req),
+      flokk_cart_read:body(UserID, Cart, Req2, State);
     _ ->
-      io:format("~p~n", [Result]),
+      {error, 500, Req}
+  end.
+
+remove(ID, Body, Req, State) ->
+  Offer = fast_key:get(<<"offer">>, Body),
+
+  case flokk_cart:remove(ID, Offer) of
+    {ok, Cart} ->
+      UserID = cowboy_resource_owner:owner_id(Req),
+      URL = cowboy_base:resolve([<<"carts">>, UserID], Req),
+      Req2 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req),
+      flokk_cart_read:body(UserID, Cart, Req2, State);
+    _ ->
       {error, 500, Req}
   end.
