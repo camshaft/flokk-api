@@ -27,15 +27,13 @@ body(ID, Item, Req, State) ->
   Keywords = fast_key:get(<<"keywords">>, Item, []),
   VendorID = fast_key:get(<<"vendor_id">>, Item, <<>>),
   VendorTitle = fast_key:get(<<"vendor_title">>, Item, <<>>),
-  Image = fast_key:get(<<"image">>, Item, <<>>),
   Images = fast_key:get(<<"images">>, Item, <<>>),
-  _Options = fast_key:get(<<"options">>, Item, []),
 
   P = presenterl:create(),
 
   P ! [
     {<<"profile">>, [
-      {<<"href">>, <<"http://alps.io/schema.org/ItemPage.xml">>}
+      {<<"href">>, <<"http://alps.io/schema.org/Product.xml">>}
     ]},
     {<<"name">>, Name},
     {<<"description">>, Description},
@@ -53,15 +51,11 @@ body(ID, Item, Req, State) ->
     {<<"category">>, [
       {<<"href">>, cowboy_base:resolve([<<"categories">>, Category], Req)}
     ]},
-    {<<"publisher">>, [
+    {<<"brand">>, [
       {<<"href">>, cowboy_base:resolve([<<"vendors">>, VendorID], Req)},
       {<<"title">>, VendorTitle}
     ]},
     {<<"image">>, [
-      {<<"src">>, Image},
-      {<<"type">>, <<"image/jpeg">>} %% TODO should we store this here or just get it from the extension
-    ]},
-    {<<"alt-image">>, [
       [
         {<<"src">>, Src},
         {<<"type">>, <<"image/jpeg">>}
@@ -102,10 +96,6 @@ body(ID, Item, Req, State) ->
           {<<"options">>, [
             [{<<"value">>, <<"USD">>}]
           ]}
-        ]},
-        {<<"image">>, [
-          {<<"type">>, <<"url">>},
-          {<<"value">>, Image}
         ]}
         %% TODO have options creation form
         % {<<"options">>, [

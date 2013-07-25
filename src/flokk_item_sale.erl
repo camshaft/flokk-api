@@ -27,6 +27,9 @@ body({ID, Sale}, Req, State) ->
   P = presenterl:create(),
 
   P ! [
+    {<<"profile">>, [
+      {<<"href">>, <<"http://alps.io/schema.org/PriceSpecification.xml">>}
+    ]},
     {<<"item">>, [
       {<<"href">>, ItemUrl}
     ]}
