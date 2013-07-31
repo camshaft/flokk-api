@@ -10,7 +10,7 @@ init(Req, _Opts) ->
 
 read(ID, Req, State) ->
   case flokk_vendor:read(ID) of
-    {error, notfound} -> {error, 404, Req};
+    {error, not_found} -> {error, 404, Req};
     {error, _} -> {error, 500, Req};
     {ok, Vendor} -> {Vendor, Req, State}
   end.

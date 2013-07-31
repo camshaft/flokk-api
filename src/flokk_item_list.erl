@@ -84,7 +84,8 @@ body(Items, Req, State) ->
         ]},
         {<<"images">>, [
           {<<"type">>, <<"url">>},
-          {<<"required">>, true}
+          {<<"required">>, true},
+          {<<"multiple">>, true}
         ]}
       ]}
     ]}

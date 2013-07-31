@@ -5,6 +5,7 @@
 -export([validate/3]).
 -export([add/4]).
 -export([remove/4]).
+-export([checkout/4]).
 
 -define(SCOPE, [<<"cart.update">>]).
 
@@ -44,3 +45,23 @@ remove(ID, Body, Req, State) ->
     _ ->
       {error, 500, Req}
   end.
+
+%% Steps:
+%%   validate the address and cc
+%%   sum the cart total (+ tax and shipping)
+%%   charge the card through balanced
+%%   create a purchase resource
+%%   ** async **
+%%   create a PO
+%%   send a receipt email to the customer
+%%   notify us that we got a sale
+checkout(ID, Body, Req, State) ->
+  CreditCard = fast_key:get(<<"creditCard">>, Body),
+
+  Total = 1000,
+  Description = <<"The Flokk LLC">>, %% TODO make a payment description
+
+  {success, _} = balanced:credit_from_uri(CreditCard, Total, Description),
+
+  flokk_cart:clear(ID),
+  {ok, Req, State}.

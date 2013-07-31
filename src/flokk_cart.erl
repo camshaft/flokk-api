@@ -9,6 +9,7 @@
 -export([set/3]).
 -export([add/3]).
 -export([remove/2]).
+-export([clear/1]).
 
 %% gen_server.
 -export([init/1]).
@@ -46,6 +47,9 @@ add(ID, Item, Quantity) ->
 
 remove(ID, Item) ->
   gen_server:call(?MODULE, {remove, ID, Item}).
+
+clear(ID) ->
+  gen_server:call(?MODULE, {initialize, ID}).
 
 
 %% gen_server.

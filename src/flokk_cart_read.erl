@@ -42,9 +42,13 @@ body(ID, Cart, Req, State) ->
       {<<"href">>, cowboy_base:resolve([<<"users">>, OwnerID], Req)}
     ]},
     {<<"checkout">>, [
-      {<<"action">>, cowboy_base:resolve([<<"carts">>, ID, <<"checkout">>], Req)},
+      {<<"action">>, cowboy_base:resolve([<<"carts">>, ID], Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
+        {<<"action">>, [
+          {<<"type">>, <<"hidden">>},
+          {<<"value">>, <<"checkout">>}
+        ]},
         {<<"name">>, [
           {<<"type">>, <<"text">>},
           {<<"prompt">>, <<"Recipient Name">>}

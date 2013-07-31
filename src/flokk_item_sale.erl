@@ -11,7 +11,7 @@ init(Req, _Opts) ->
 call(Req, State) ->
   {ID, Req} = cowboy_req:binding(id, Req),
   case flokk_item:sale(ID) of
-    {error, notfound} ->
+    {error, not_found} ->
       {false, Req, State};
     {error, _} ->
       {error, 500, Req};
@@ -28,12 +28,30 @@ body({ID, Sale}, Req, State) ->
 
   P ! [
     {<<"profile">>, [
-      {<<"href">>, <<"http://alps.io/schema.org/PriceSpecification.xml">>}
+      {<<"href">>, <<"http://alps.io/schema.org/Offer.xml">>}
     ]},
-    {<<"item">>, [
+    {<<"itemOffered">>, [
       {<<"href">>, ItemUrl}
     ]}
   ],
+
+  % availability
+  % availabilityEnds
+  % availabilityStarts
+  % category
+  % deliveryLeadTime
+  % eligibleDuration
+  % eligibleQuantity
+  % inventoryLevel
+  % priceSpecification
+  %   maxPrice
+  %   minPrice
+  %   price
+  %   priceCurrency
+  %   valueAddedTaxIncluded
+  % validFrom
+  % validThrough
+
 
   presenterl:conditional([
     Ending =/= undefined

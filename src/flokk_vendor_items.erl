@@ -11,7 +11,7 @@ init(Req, _Opts) ->
 call(Req, State) ->
   {ID, Req} = cowboy_req:binding(id, Req),
   case flokk_item:find([{<<"vendor">>, ID}]) of
-    {error, notfound} ->
+    {error, not_found} ->
       {false, Req, State};
     {error, _} ->
       {error, 500, Req};
