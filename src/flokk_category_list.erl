@@ -13,9 +13,13 @@ list(Req, State) ->
   {Response, Req, State}.
 
 body(Categories, Req, State) ->
+  SortedCategories = lists:sort(fun({_, C1}, {_, C2}) ->
+    fast_key:get(<<"title">>, C1) =< fast_key:get(<<"title">>, C2)
+  end, Categories),
+
   Body = [
     {<<"categories">>,
-      [format_category(ID, Category, Req) || {ID, Category} <- Categories]
+      [format_category(ID, Category, Req) || {ID, Category} <- SortedCategories]
     }
   ],
 
