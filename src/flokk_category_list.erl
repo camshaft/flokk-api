@@ -13,6 +13,7 @@ list(Req, State) ->
   {Response, Req, State}.
 
 body(Categories, Req, State) ->
+  %% Here we can lookup the popularity of each category and sort by that
   SortedCategories = lists:sort(fun({_, C1}, {_, C2}) ->
     fast_key:get(<<"title">>, C1) =< fast_key:get(<<"title">>, C2)
   end, Categories),

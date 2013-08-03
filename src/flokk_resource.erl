@@ -16,7 +16,7 @@
   content_types_provided/2,
   variances/2,
   resource_exists/2,
-  % generate_etag/2,
+  generate_etag/2,
   delete_resource/2
 ]).
 
@@ -49,7 +49,7 @@ rest_init(Req, Opts) ->
   {ID, Req} = cowboy_req:binding(id, Req),
   Resource = proplists:get_value(resource, Opts),
 
-  ForcedCommand = proplists:get_value(command, Opts),
+  ForcedCommand = fast_key:get(command, Opts),
 
   Command = case ForcedCommand of
     undefined ->
@@ -231,10 +231,10 @@ resource_exists(Req, State = #state{command = update}) ->
   {true, Req, State}.
 
 % Disable this for now until we move it after we generate the body
-% generate_etag(Req, State = #state{body = Body}) ->
-%   lager:debug("resource:generate_etag"),
-%   Hash = list_to_binary(integer_to_list(erlang:phash2(Body))),
-%   {<<$","W/",Hash/binary,$">>, Req, State}.
+generate_etag(Req, State = #state{data = Data}) ->
+  lager:debug("resource:generate_etag"),
+  Hash = list_to_binary(integer_to_list(erlang:phash2(Data))),
+  {<<$","W/",Hash/binary,$">>, Req, State}.
 
 content_types_accepted(Req, State) ->
   lager:debug("resource:content_types_accepted"),
