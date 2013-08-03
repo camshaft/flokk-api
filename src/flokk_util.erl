@@ -1,6 +1,6 @@
--module (flokk_util).
+-module(flokk_util).
 
--export ([load_dispatch/1]).
+-export([load_dispatch/1]).
 
 load_dispatch(App) ->
   File = priv_dir(App),

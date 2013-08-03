@@ -1,4 +1,4 @@
--module (flokk_resource).
+-module(flokk_resource).
 
 % -behaviour(cowboy_handler).
 -export([
@@ -183,8 +183,13 @@ resource_exists(Req, State = #state{handler = Handler, command = Command}) when 
           Error;
         {false, _, _} = Error ->
           Error;
-        {Body, Req2, State2} ->
-          {true, Req2, State2#state{body=Body}}
+        {{ok, Body}, Req2, State2} ->
+          {true, Req2, State2#state{body=Body}};
+        {{error, notfound}, Req2, State2} ->
+          {false, Req2, State2};
+        {{error, _}, Req2, State2} ->
+          %% TODO handle the error
+          {false, Req2, State2}
       end;
     false ->
       {true, Req, State}
@@ -192,18 +197,26 @@ resource_exists(Req, State = #state{handler = Handler, command = Command}) when 
 resource_exists(Req, State = #state{handler = Handler, command = list}) ->
   lager:debug("resource:resource_exists:list"),
   case Handler:list(Req, State) of
+    {{ok, Data}, Req2, State2} ->
+      {true, Req2, State2#state{data=Data}};
+    {{error, _}, Req2, State2} ->
+      %% TODO handle the error
+      {false, Req2, State2};
     {error, _, _} ->
-      {false, Req, State};
-    {Data, Req2, State2} ->
-      {true, Req2, State2#state{data = Data}}
+      {false, Req, State}
   end;
 resource_exists(Req, State = #state{handler = Handler, command = read, id = ID}) ->
   lager:debug("resource:resource_exists:read"),
   case Handler:read(ID, Req, State) of
+    {{ok, Data}, Req2, State2} ->
+      {true, Req2, State2#state{data=Data}};
+    {{error, notfound}, Req2, State2} ->
+      {false, Req2, State2};
+    {{error, _}, Req2, State2} ->
+      %% TODO handle the error
+      {false, Req2, State2};
     {error, _, _} ->
-      {false, Req, State};
-    {Data, Req2, State2} ->
-      {true, Req2, State2#state{data = Data}}
+      {false, Req, State}
   end;
 resource_exists(Req, State = #state{command = create}) ->
   lager:debug("resource:resource_exists:create"),
@@ -265,10 +278,12 @@ parse_json(Req, State = #state{handler = Handler} , Next) ->
 
 create_resource(Handler, Body, Req, State) ->
   case Handler:create(Body, Req, State) of
-    {error, _, _} = Error -> Error;
-    {ID, Req2, State2} ->
+    {{ok, ID}, Req2, State2} ->
       {Loc, Req3, State3} = Handler:location(ID, Req2, State2),
-      {{true, Loc}, Req3, State3}
+      {{true, Loc}, Req3, State3};
+    %% TODO handle error
+    {error, _, _} = Error ->
+      Error
   end.
 
 action_resource(Handler, Body, Req, State = #state{id = ID}) ->

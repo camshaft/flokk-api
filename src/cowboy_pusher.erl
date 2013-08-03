@@ -1,4 +1,4 @@
--module (cowboy_pusher).
+-module(cowboy_pusher).
 
 -export([execute/2]).
 

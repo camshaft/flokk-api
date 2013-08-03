@@ -16,20 +16,22 @@ list(Req, State) ->
   {Email, Req2} = cowboy_req:qs_val(<<"email">>, Req),
   {Facebook, Req3} = cowboy_req:qs_val(<<"facebook">>, Req2),
   {Google, Req4} = cowboy_req:qs_val(<<"google">>, Req3),
+  Result = exec(ID, Email, Facebook, Google, cowboy_env:get(Req4)),
+  {Result, Req4, State}.
 
-  Query = [
-    {<<"id">>, ID},
-    {<<"email">>, Email},
-    {<<"facebook">>, Facebook},
-    {<<"google">>, Google}
-  ],
-
-  case flokk_user:find(Query) of
-    {error, _} ->
-      {error, 500, Req4};
-    {ok, Results} ->
-      {Results, Req4, State}
-  end.
+exec(ID, _, _, _, Env) when is_binary(ID) ->
+  case flokk_user:read(ID, Env) of
+    {ok, _User} ->
+      {ok, [ID]};
+    {error, notfound} ->
+      {ok, []};
+    Error ->
+      Error
+  end;
+exec(_, Email, _, _, Env) when is_binary(Email) ->
+  flokk_user:find(<<"email">>, Email, Env);
+exec(_, _, Facebook, _, Env) when is_binary(Facebook) ->
+  flokk_user:find(<<"facebook">>, Facebook, Env).
 
 scope(Req, State) ->
   {?SCOPE, Req, State}.

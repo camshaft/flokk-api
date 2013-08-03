@@ -1,4 +1,4 @@
--module (flokk_cart_read).
+-module(flokk_cart_read).
 
 -export([init/2]).
 -export([scope/2]).
@@ -15,11 +15,8 @@ scope(Req, State) ->
   {?SCOPE, Req, State}.
 
 read(ID, Req, State) ->
-  case flokk_cart:read(ID) of
-    {error, _} -> {error, 500, Req};
-    {ok, Cart} -> {Cart, Req, State};
-    _ -> {error, 404, Req}
-  end.
+  Response = flokk_cart:read(ID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(ID, Cart, Req, State) ->
   URL = cowboy_base:resolve([<<"carts">>, ID], Req),
@@ -105,14 +102,17 @@ format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_inte
           {<<"type">>, <<"hidden">>},
           {<<"value">>, <<"update">>}
         ]},
-        {<<"quantity">>, [
-          {<<"type">>, <<"range">>},
-          {<<"value">>, Quantity},
-          {<<"prompt">>, <<"Quantity">>}
+        {<<"prev-quantity">>, [
+          {<<"type">>, <<"hidden">>},
+          {<<"value">>, Quantity}
         ]},
         {<<"offer">>, [
           {<<"type">>, <<"hidden">>},
-          {<<"value">>, Offer},
+          {<<"value">>, Offer}
+        ]},
+        {<<"quantity">>, [
+          {<<"type">>, <<"range">>},
+          {<<"value">>, Quantity},
           {<<"prompt">>, <<"Quantity">>}
         ]}
       ]}
@@ -124,11 +124,6 @@ format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_inte
         {<<"action">>, [
           {<<"type">>, <<"hidden">>},
           {<<"value">>, <<"remove">>}
-        ]},
-        {<<"quantity">>, [
-          {<<"type">>, <<"hidden">>},
-          {<<"value">>, 0},
-          {<<"prompt">>, <<"Quantity">>}
         ]},
         {<<"offer">>, [
           {<<"type">>, <<"hidden">>},

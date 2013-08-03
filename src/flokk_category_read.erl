@@ -1,4 +1,4 @@
--module (flokk_category_read).
+-module(flokk_category_read).
 
 -export([init/2]).
 -export([read/3]).
@@ -9,14 +9,11 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 read(ID, Req, State) ->
-  case flokk_category:read(ID) of
-    {error, not_found} -> {error, 404, Req};
-    {error, _} -> {error, 500, Req};
-    {ok, Category} -> {Category, Req, State}
-  end.
+  Response = flokk_category:read(ID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(ID, Category, Req, State) ->
-  URL = cowboy_base:resolve([<<"category">>,ID], Req),
+  URL = cowboy_base:resolve([<<"category">>, ID], Req),
   Title = fast_key:get(<<"title">>, Category, <<>>),
 
   P = presenterl:create(),
@@ -24,7 +21,7 @@ body(ID, Category, Req, State) ->
   P ! [
     {<<"title">>, Title},
     {<<"items">>, [
-      {<<"href">>, cowboy_base:resolve([<<"categories">>,ID,<<"items">>], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"categories">>, ID, <<"items">>], Req)}
     ]}
   ],
 

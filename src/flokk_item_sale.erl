@@ -1,4 +1,4 @@
--module (flokk_item_sale).
+-module(flokk_item_sale).
 
 -export([init/2]).
 -export([call/2]).
@@ -10,13 +10,11 @@ init(Req, _Opts) ->
 
 call(Req, State) ->
   {ID, Req} = cowboy_req:binding(id, Req),
-  case flokk_item:sale(ID) of
-    {error, not_found} ->
-      {false, Req, State};
-    {error, _} ->
-      {error, 500, Req};
+  case flokk_item:sale(ID, cowboy_env:get(Req)) of
     {ok, Sale} ->
-      {{ID, Sale}, Req, State}
+      {{ok, {ID, Sale}}, Req, State};
+    Error ->
+      {Error, Req, State}
   end.
 
 body({ID, Sale}, Req, State) ->

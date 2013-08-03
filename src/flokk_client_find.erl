@@ -14,15 +14,13 @@ init(Req, _Opts) ->
 list(Req, State) ->
   {ID, Req2} = cowboy_req:qs_val(<<"id">>, Req),
 
-  Query = [
-    {<<"id">>, ID}
-  ],
-
-  case flokk_client:find(Query) of
-    {error, _} ->
-      {error, 500, Req2};
-    {ok, Results} ->
-      {Results, Req2, State}
+  case flokk_client:read(ID) of
+    {ok, _Client} ->
+      {{ok, [ID]}, Req2, State};
+    {error, notfound} ->
+      {{ok, []}, Req2, State};
+    Other ->
+      {Other, Req2, State}
   end.
 
 scope(Req, State) ->

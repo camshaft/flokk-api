@@ -1,4 +1,4 @@
--module (flokk_client_read).
+-module(flokk_client_read).
 
 -export([init/2]).
 -export([read/3]).
@@ -9,11 +9,8 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 read(ID, Req, State) ->
-  case flokk_client:read(ID) of
-    {error, _} -> {error, 500, Req};
-    {ok, Client} -> {Client, Req, State};
-    _ -> {error, 404, Req}
-  end.
+  Response = flokk_client:read(ID),
+  {Response, Req, State}.
 
 body(ID, Client, Req, State) ->
   P = presenterl:create(),

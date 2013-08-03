@@ -1,4 +1,4 @@
--module (flokk_watcher_read).
+-module(flokk_watcher_read).
 
 -export([init/2]).
 -export([read/3]).
@@ -9,16 +9,11 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 read(ItemID, Req, State) ->
-  case flokk_watcher:list(ItemID) of
-    {error, not_found} ->
-      {error, 404, Req};
-    {error, _} ->
-      {error, 500, Req};
-    {ok, Watchers} ->
-      {Watchers, Req, State}
-  end.
+  OwnerID = cowboy_resource_owner:owner_id(Req),
+  Response = flokk_watcher:item_summary(ItemID, OwnerID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
-body(ItemID, {Count, Watchers}, Req, State) ->
+body(ItemID, {Count, IsWatching}, Req, State) ->
 
   Url = cowboy_base:resolve([<<"items">>, ItemID, <<"watchers">>], Req),
 
@@ -33,18 +28,19 @@ body(ItemID, {Count, Watchers}, Req, State) ->
 
   presenterl:conditional([
     cowboy_resource_owner:is_authorized(<<"item.watchers">>, Req)
-  ], fun() -> [
-    {<<"watchers">>, 
-      [
+  ], fun() ->
+    {ok, Watchers} = flokk_watcher:item_watchers(ItemID, cowboy_env:get(Req)),
+    [
+      {<<"watchers">>,
         [
-          {<<"href">>, cowboy_base:resolve([<<"users">>, Watcher], Req)}
-        ]
-      || Watcher <- Watchers]
-    }
-  ] end, P),
+          [
+            {<<"href">>, cowboy_base:resolve([<<"users">>, Watcher], Req)}
+          ]
+        || Watcher <- Watchers]
+      }
+    ] 
+  end, P),
 
-  UserID = cowboy_resource_owner:owner_id(Req),
-  IsWatching = lists:member(UserID, Watchers),
   IsAllowed = cowboy_resource_owner:is_authorized(<<"user.watches">>, Req),
 
   presenterl:conditional([

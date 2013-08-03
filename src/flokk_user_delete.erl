@@ -1,11 +1,11 @@
--module(flokk_user_create).
+-module(flokk_user_delete).
 
 -export([init/2]).
 -export([scope/2]).
--export([create/3]).
+-export([delete/3]).
 -export([location/3]).
 
--define(SCOPE, <<"user.create">>).
+-define(SCOPE, <<"user.delete">>).
 
 init(Req, _Opts) ->
   {ok, Req, []}.
@@ -13,8 +13,8 @@ init(Req, _Opts) ->
 scope(Req, State) ->
   {?SCOPE, Req, State}.
 
-create(Body, Req, State) ->
-  Response = flokk_user:create(Body, cowboy_env:get(Req)),
+delete(ID, Req, State) ->
+  Response = flokk_user:delete(ID, cowboy_env:get(Req)),
   {Response, Req, State}.
 
 location(ID, Req, State) ->

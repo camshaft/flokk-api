@@ -1,4 +1,4 @@
--module (flokk_vendor_items).
+-module(flokk_vendor_items).
 
 -export([init/2]).
 -export([call/2]).
@@ -10,14 +10,8 @@ init(Req, _Opts) ->
 
 call(Req, State) ->
   {ID, Req} = cowboy_req:binding(id, Req),
-  case flokk_item:find([{<<"vendor">>, ID}]) of
-    {error, not_found} ->
-      {false, Req, State};
-    {error, _} ->
-      {error, 500, Req};
-    {ok, Items} ->
-      {Items, Req, State}
-  end.
+  Response = flokk_item:find(<<"vendor">>, ID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(Items, Req, State) ->
   Body = [

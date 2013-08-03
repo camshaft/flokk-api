@@ -5,7 +5,7 @@
 -export([delete/3]).
 -export([location/2]).
 
--define (SCOPE, <<"vendor.delete">>).
+-define(SCOPE, <<"vendor.delete">>).
 
 init(Req, _Opts) ->
   {ok, Req, []}.
@@ -14,8 +14,8 @@ scope(Req, State) ->
   {?SCOPE, Req, State}.
 
 delete(ID, Req, State) ->
-  ok = flokk_vendor:delete(ID),
-  {ok, Req, State}.
+  Response = flokk_vendor:delete(ID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 location(Req, State) ->
   {cowboy_base:resolve(<<"vendors">>, Req), Req, State}.

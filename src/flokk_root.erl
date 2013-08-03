@@ -1,4 +1,4 @@
--module (flokk_root).
+-module(flokk_root).
 
 -export([init/2]).
 -export([body/2]).
@@ -26,25 +26,27 @@ body(Req, State) ->
   ],
 
   %% User specific links
-  case cowboy_resource_owner:owner_id(Req) of
-    undefined ->
-      noop;
-    OwnerID ->
-      presenterl:conditional([
-        OwnerID =/= undefined
-      ], [
-        {<<"account">>, [
-          {<<"href">>, cowboy_base:resolve([<<"users">>, OwnerID], Req)}
-        ]}
-      ], P),
-      presenterl:conditional([
-        cowboy_resource_owner:is_authorized(<<"cart.read">>, Req)
-      ], [
-        {<<"cart">>, [
-          {<<"href">>, cowboy_base:resolve([<<"carts">>, OwnerID], Req)}
-        ]}
-      ], P)
-  end,
+  OwnerID = cowboy_resource_owner:owner_id(Req),
+
+  presenterl:conditional([
+    OwnerID =/= undefined
+  ], fun() ->
+    [
+      {<<"account">>, [
+        {<<"href">>, cowboy_base:resolve([<<"users">>, OwnerID], Req)}
+      ]}
+    ]
+  end, P),
+
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"cart.read">>, Req)
+  ], fun() ->
+    [
+      {<<"cart">>, [
+        {<<"href">>, cowboy_base:resolve([<<"carts">>, OwnerID], Req)}
+      ]}
+    ]
+  end, P),
 
   %% Auth links
   presenterl:conditional([

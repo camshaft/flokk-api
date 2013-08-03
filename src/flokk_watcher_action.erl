@@ -25,7 +25,7 @@ unwatch(ItemID, _Body, Req, State) ->
 
 response(Action, ItemID, Req, State) ->
   OwnerID = cowboy_resource_owner:owner_id(Req),
-  {ok, Watchers} = flokk_watcher:Action(OwnerID, ItemID),
+  {ok, Watchers} = flokk_watcher:Action(ItemID, OwnerID),
   URL = cowboy_base:resolve([<<"items">>, ItemID, <<"watchers">>], Req),
   UserWatches = cowboy_base:resolve([<<"users">>, OwnerID, <<"watches">>], Req),
 

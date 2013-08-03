@@ -23,29 +23,14 @@ init([Backend]) ->
   RiakUrl = get_riak_url(),
   PusherURL = simple_env:get_binary("PUSHER_URL"),
 
+  gen_batch_sup:start_link(),
+
   Procs = [
-    %% Models
-    {flokk_cart,
-      {flokk_cart, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_cart]},
-    {flokk_category,
-      {flokk_category, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_category]},
+    %% Store the clients in code for now
     {flokk_client,
-      {flokk_client, start_link, [Backend]},
+      {flokk_client, start_link, []},
       permanent, 5000, worker, [flokk_client]},
-    {flokk_item,
-      {flokk_item, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_item]},
-    {flokk_vendor,
-      {flokk_vendor, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_vendor]},
-    {flokk_user,
-      {flokk_user, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_user]},
-    {flokk_watcher,
-      {flokk_watcher, start_link, [Backend]},
-      permanent, 5000, worker, [flokk_watcher]},
+    %% Hook to pusher
     {pusherl,
       {pusherl, start_link, [PusherURL]},
       permanent, 5000, worker, [pusherl]},

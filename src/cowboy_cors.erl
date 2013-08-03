@@ -1,4 +1,4 @@
--module (cowboy_cors).
+-module(cowboy_cors).
 
 -export([execute/2]).
 

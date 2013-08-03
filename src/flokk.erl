@@ -1,7 +1,7 @@
 %%
 %% flokk.erl
 %%
--module (flokk).
+-module(flokk).
 
 -export([start/0]).
 

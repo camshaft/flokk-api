@@ -1,4 +1,4 @@
--module (flokk_category_list).
+-module(flokk_category_list).
 
 -export([init/2]).
 -export([list/2]).
@@ -9,17 +9,13 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 list(Req, State) ->
-  case flokk_category:list() of
-    {ok, Categories} ->
-      {Categories, Req, State};
-    {error, _} ->
-      {error, 500, Req}
-  end.
+  Response = flokk_category:list(cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(Categories, Req, State) ->
   Body = [
     {<<"categories">>,
-      [format_category(ID, Title, Req) || {ID, Title} <- Categories]
+      [format_category(ID, Category, Req) || {ID, Category} <- Categories]
     }
   ],
 
@@ -38,11 +34,12 @@ body(Categories, Req, State) ->
 
   {Body1, Req, State}.
 
-format_category(ID, Title, Req)->
+format_category(ID, Category, Req)->
+  Title = fast_key:get(<<"title">>, Category),
   [
     {<<"href">>, cowboy_base:resolve([<<"categories">>, ID], Req)},
     {<<"title">>, Title},
-    {<<"items">>, cowboy_base:resolve([<<"categories">>,ID,<<"items">>], Req)}
+    {<<"items">>, cowboy_base:resolve([<<"categories">>, ID, <<"items">>], Req)}
   ].
 
 ttl(Req, State)->

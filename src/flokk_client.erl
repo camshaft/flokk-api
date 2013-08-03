@@ -1,7 +1,7 @@
--module (flokk_client).
+-module(flokk_client).
 
 %% API.
--export([start_link/1]).
+-export([start_link/0]).
 -export([stop/0]).
 -export([available/0]).
 -export([list/0]).
@@ -19,7 +19,7 @@
 -export([terminate/2]).
 -export([code_change/3]).
 
--record (state, {
+-record(state, {
   db,
   flokk_ui_client_id = simple_env:get_binary("FLOKK_UI_CLIENT_ID", <<"flokk-ui">>),
   flokk_ui_client_secret = simple_env:get_binary("FLOKK_UI_CLIENT_SECRET"),
@@ -34,8 +34,8 @@
 
 %% API.
 
-start_link(DB) ->
-  gen_server:start_link({local, ?MODULE}, ?MODULE, DB, []).
+start_link() ->
+  gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 stop() ->
   gen_server:call(?MODULE, stop).
@@ -64,8 +64,8 @@ find(Query) ->
 
 %% gen_server.
 
-init(DB) ->
-  {ok, #state{db=DB}}.
+init([]) ->
+  {ok, #state{}}.
 
 handle_call(stop, _, State) ->
   {stop, normal, stopped, State};
@@ -105,6 +105,8 @@ handle_call({read, ID}, _, State = #state{flokk_admin_client_id = ID, flokk_admi
     {<<"scopes">>, Scopes}
   ],
   {reply, {ok, Response}, State};
+handle_call({read, _}, _, State) ->
+  {reply, {error, notfound}, State};
 handle_call({create, _Item}, _, State) ->
   % Response = DB:post(?BUCKET, Item),
   Response = <<"new-client-id">>,

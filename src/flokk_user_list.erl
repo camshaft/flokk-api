@@ -15,14 +15,17 @@ scope(Req, State) ->
   {?SCOPE, Req, State}.
 
 list(Req, State) ->
-  {[], Req, State}.
+  %% TODO does it make sense to be able to list all of the users?
+  {{ok, []}, Req, State}.
 
 body(_, Req, State) ->
-  Body = [],
+  P = presenterl:create(),
 
-  Body2 = cowboy_resource_builder:authorize(<<"user.find">>, Req, Body, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"user.find">>, Req)
+  ], [
     {<<"find">>, [
-      {<<"action">>, cowboy_base:resolve([<<"users">>,<<"find">>], Req)},
+      {<<"action">>, cowboy_base:resolve([<<"users">>, <<"find">>], Req)},
       {<<"method">>, <<"GET">>},
       {<<"input">>, [
         {<<"id">>, [
@@ -39,15 +42,17 @@ body(_, Req, State) ->
         ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  Body3 = cowboy_resource_builder:authorize(<<"user.create">>, Req, Body2, [
+  presenterl:conditional([
+    cowboy_resource_owner:is_authorized(<<"user.create">>, Req)
+  ], [
     {<<"create">>, [
       {<<"action">>, cowboy_base:resolve([<<"users">>], Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
         {<<"email">>, [
-          {<<"type">>, <<"application/x-flokk-email">>},
+          {<<"type">>, <<"email">>},
           {<<"required">>, true}
         ]},
         {<<"passhash">>, [
@@ -74,9 +79,11 @@ body(_, Req, State) ->
         ]}
       ]}
     ]}
-  ]),
+  ], P),
 
-  {Body3, Req, State}.
+  Body = presenterl:encode(P),
+
+  {Body, Req, State}.
 
 ttl(Req, State)->
   {3600, Req, State}.

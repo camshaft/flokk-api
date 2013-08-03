@@ -10,20 +10,14 @@ init(Req, _Opts) ->
 
 call(Req, State) ->
   {ID, Req} = cowboy_req:binding(id, Req),
-  case flokk_item:find([{<<"category">>, ID}]) of
-    {error, not_found} ->
-      {false, Req, State};
-    {error, _} ->
-      {error, 500, Req};
-    {ok, Items} ->
-      {Items, Req, State}
-  end.
+  Response = flokk_item:find(<<"category">>, ID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(Items, Req, State) ->
   Body = [
     {<<"items">>, [
       [
-        {<<"href">>, cowboy_base:resolve([<<"items">>,ID], Req)}
+        {<<"href">>, cowboy_base:resolve([<<"items">>, ID], Req)}
       ] || ID <- Items
     ]}
   ],

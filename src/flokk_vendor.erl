@@ -1,116 +1,42 @@
--module (flokk_vendor).
+-module(flokk_vendor).
 
 %% API.
--export([start_link/1]).
--export([stop/0]).
--export([available/0]).
--export([list/0]).
--export([read/1]).
--export([create/1]).
--export([update/2]).
--export([delete/1]).
--export([items/1]).
+-export([list/1]).
+-export([read/2]).
+-export([create/2]).
+-export([update/3]).
+-export([delete/2]).
+-export([find/3]).
+-export([validate/1]).
 
-%% gen_server.
--export([init/1]).
--export([handle_call/3]).
--export([handle_cast/2]).
--export([handle_info/2]).
--export([terminate/2]).
--export([code_change/3]).
+-include("flokk.hrl").
 
 %% Bucket name.
--define(BUCKET, <<"fk_vendor">>).
+-define(BUCKET(Env), <<"fk_vendor_", Env/binary>>).
+
+-define(TWO_I, []).
 
 %% API.
 
-start_link(DB) ->
-  gen_server:start_link({local, ?MODULE}, ?MODULE, DB, []).
+list(Env) ->
+  % TODO page this
+  ?FLOKK_DB:values(?BUCKET(Env)).
 
-stop() ->
-  gen_server:call(?MODULE, stop).
+read(ID, Env) ->
+  ?FLOKK_DB:get(?BUCKET(Env), ID).
 
-available() ->
-  gen_server:call(?MODULE, ping) =:= pong.
+create(Vendor, Env) ->
+  ?FLOKK_DB:create(?BUCKET(Env), Vendor, ?TWO_I).
 
-list() ->
-  gen_server:call(?MODULE, list).
+update(ID, Vendor, Env) ->
+  ?FLOKK_DB:update(?BUCKET(Env), ID, Vendor, ?TWO_I).
 
-read(ID) ->
-  gen_server:call(?MODULE, {read, ID}).
+delete(ID, Env) ->
+  ?FLOKK_DB:delete(?BUCKET(Env), ID).
 
-create(Vendor) ->
-  gen_server:call(?MODULE, {create, Vendor}).
+find(Index, Value, Env) ->
+  ?FLOKK_DB:keys_by_index(?BUCKET(Env), Index, Value).
 
-update(ID, Vendor) ->
-  gen_server:call(?MODULE, {update, ID, Vendor}).
-
-delete(ID) ->
-  gen_server:call(?MODULE, {delete, ID}).
-
-items(ID) ->
-  gen_server:call(?MODULE, {items, ID}).
-
-
-%% gen_server.
-
-init(DB) ->
-  {ok, DB}.
-
-handle_call(stop, _, DB) ->
-  {stop, normal, stopped, DB};
-handle_call(list, _, DB) ->
-  % Response = DB:list(?BUCKET),
-  Response = [
-    {<<"scott-n-dave">>, <<"Scott 'n Dave">>}
-  ],
-  {reply, {ok, Response}, DB};
-handle_call({read, _ID}, _, DB) ->
-  % Response = DB:get(?BUCKET, ID),
-  Response = [
-    {<<"name">>, <<"Scott 'n Dave">>},
-    {<<"description">>, <<"We specialize in lame prints">>},
-    {<<"logo">>, <<"https://upload.wikimedia.org/wikipedia/commons/c/c5/Ikea_logo.svg">>}
-  ],
-  {reply, {ok, Response}, DB};
-handle_call({create, _Category}, _, DB) ->
-  % Response = DB:post(?BUCKET, Category),
-  Response = <<"new-vendor-id">>,
-  {reply, {ok, Response}, DB};
-handle_call({update, _ID, _Category}, _, DB) ->
-  % Response = DB:put(?BUCKET, ID, Category),
-  Response = ok,
-  {reply, Response, DB};
-handle_call({delete, _ID}, _, DB) ->
-  % Response = DB:delete(?BUCKET, ID),
-  {reply, ok, DB};
-handle_call({items, _ID}, _, DB) ->
-  % Response = DB:delete(?BUCKET, ID),
-  Response = [
-    {<<"1">>, [{<<"title">>, <<"Lame Print 1">>}]},
-    {<<"2">>, [{<<"title">>, <<"Lame Print 2">>}]},
-    {<<"3">>, [{<<"title">>, <<"Lame Print 3">>}]},
-    {<<"4">>, [{<<"title">>, <<"Lame Print 4">>}]},
-    {<<"5">>, [{<<"title">>, <<"Lame Print 5">>}]},
-    {<<"6">>, [{<<"title">>, <<"Lame Print 6">>}]},
-    {<<"7">>, [{<<"title">>, <<"Lame Print 7">>}]}
-  ],
-  {reply, {ok, Response}, DB};
-handle_call(ping, _, DB) ->
-  {reply, DB:ping(), DB};
-handle_call(_, _, DB) ->
-  {reply, ignore, DB}.
-
-handle_cast(_, DB) ->
-  {noreply, DB}.
-
-handle_info(_, DB) ->
-  {noreply, DB}.
-
-terminate(_Reason, _DB) ->
-  ok.
-
-code_change(_OldVsn, DB, _Extra) ->
-  {ok, DB}.
-
-%% Internal.
+% TODO
+validate(_Item) ->
+  true.

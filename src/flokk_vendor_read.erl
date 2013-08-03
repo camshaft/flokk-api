@@ -1,4 +1,4 @@
--module (flokk_vendor_read).
+-module(flokk_vendor_read).
 
 -export([init/2]).
 -export([read/3]).
@@ -9,14 +9,11 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 read(ID, Req, State) ->
-  case flokk_vendor:read(ID) of
-    {error, not_found} -> {error, 404, Req};
-    {error, _} -> {error, 500, Req};
-    {ok, Vendor} -> {Vendor, Req, State}
-  end.
+  Response = flokk_vendor:read(ID, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(ID, Vendor, Req, State) ->
-  URL = cowboy_base:resolve([<<"vendor">>,ID], Req),
+  URL = cowboy_base:resolve([<<"vendor">>, ID], Req),
   Name = fast_key:get(<<"name">>, Vendor, <<>>),
   Description = fast_key:get(<<"description">>, Vendor, <<>>),
   Email = fast_key:get(<<"email">>, Vendor, <<>>),
@@ -36,7 +33,7 @@ body(ID, Vendor, Req, State) ->
       {<<"type">>, <<"image/jpg">>} %% TODO get file extension
     ]},
     {<<"makesOffer">>, [
-      {<<"href">>, cowboy_base:resolve([<<"vendors">>,ID,<<"items">>], Req)}
+      {<<"href">>, cowboy_base:resolve([<<"vendors">>, ID, <<"items">>], Req)}
     ]}
   ],
 

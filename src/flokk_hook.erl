@@ -1,4 +1,4 @@
--module (flokk_hook).
+-module(flokk_hook).
 
 -export([start/1]).
 -export([terminate/4]).

@@ -1,4 +1,4 @@
--module (flokk_vendor_list).
+-module(flokk_vendor_list).
 
 -export([init/2]).
 -export([list/2]).
@@ -9,17 +9,13 @@ init(Req, _Opts) ->
   {ok, Req, []}.
 
 list(Req, State) ->
-  case flokk_vendor:list() of
-    {ok, Vendors} ->
-      {Vendors, Req, State};
-    {error, _} ->
-      {error, 500, Req}
-  end.
+  Response = flokk_vendor:list(cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 body(Vendors, Req, State) ->
   Body = [
     {<<"vendors">>,
-      [format_vendor(ID, Title, Req) || {ID, Title} <- Vendors]
+      [format_vendor(ID, Vendor, Req) || {ID, Vendor} <- Vendors]
     }
   ],
 
@@ -38,7 +34,8 @@ body(Vendors, Req, State) ->
 
   {Body1, Req, State}.
 
-format_vendor(ID, Title, Req)->
+format_vendor(ID, Vendor, Req)->
+  Title = fast_key:get(<<"name">>, Vendor),
   [
     {<<"href">>, cowboy_base:resolve([<<"vendors">>, ID], Req)},
     {<<"title">>, Title}

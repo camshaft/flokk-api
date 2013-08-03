@@ -1,5 +1,5 @@
 %% @private
--module (flokk_app).
+-module(flokk_app).
 -behaviour(application).
 
 %% API.
@@ -29,6 +29,7 @@ start(_Type, _Args) ->
     {onrequest, fun flokk_hook:start/1},
     {onresponse, fun flokk_hook:terminate/4},
     {middlewares, [
+      cowboy_env,
       cowboy_cors,
       cowboy_empty_favicon,
       cowboy_base,
