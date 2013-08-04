@@ -22,11 +22,10 @@ validate(_Body, Req, State) ->
 add(ID, Body, Req, State) ->
   Offer = fast_key:get(<<"offer">>, Body),
 
-  %% TODO we might need to parse these
   Quantity = fast_key:get(<<"quantity">>, Body),
-  PrevQuantity = fast_key:get(<<"prev-quantity">>, Body),
+  PrevQuantity = fast_key:get(<<"prev-quantity">>, Body, 0),
 
-  case flokk_cart:add(ID, Offer, Quantity - PrevQuantity) of
+  case flokk_cart:add(ID, Offer, Quantity - PrevQuantity, cowboy_env:get(Req)) of
     {ok, Cart} ->
       UserID = cowboy_resource_owner:owner_id(Req),
       URL = cowboy_base:resolve([<<"carts">>, UserID], Req),
@@ -39,7 +38,7 @@ add(ID, Body, Req, State) ->
 remove(ID, Body, Req, State) ->
   Offer = fast_key:get(<<"offer">>, Body),
 
-  case flokk_cart:remove(ID, Offer) of
+  case flokk_cart:remove(ID, Offer, cowboy_env:get(Req)) of
     {ok, Cart} ->
       UserID = cowboy_resource_owner:owner_id(Req),
       URL = cowboy_base:resolve([<<"carts">>, UserID], Req),
