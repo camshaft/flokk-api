@@ -2,7 +2,6 @@
 
 %% API.
 -export([item_watchers/2]).
--export([item_summary/2]).
 -export([item_summary/3]).
 -export([user_watches/2]).
 -export([user_summary/2]).
@@ -26,18 +25,12 @@ item_watchers(Item, Env) ->
       Error
   end.
 
-item_summary(Item, Env) ->
-  item_summary(Item, undefined, Env).
 item_summary(Item, User, Env) ->
   case ?FLOKK_DB:get(?BUCKET(Env), Item) of
-    {ok, Set} when is_binary(User) ->
-      {ok, gb_sets:size(Set), gb_sets:is_member(User, Set)};
     {ok, Set} ->
-      {ok, gb_sets:size(Set)};
-    {error, notfound} when is_binary(User) ->
-      {ok, 0, false};
+      {ok, {gb_sets:size(Set), gb_sets:is_member(User, Set)}};
     {error, notfound} ->
-      {ok, 0};
+      {ok, {0, false}};
     Error ->
       Error
   end.
