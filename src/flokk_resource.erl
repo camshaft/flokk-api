@@ -287,6 +287,8 @@ create_resource(Handler, Body, Req, State) ->
     {{ok, ID}, Req2, State2} ->
       {Loc, Req3, State3} = Handler:location(ID, Req2, State2),
       {{true, Loc}, Req3, State3};
+    {{error, _}, Req2, State2} ->
+      {false, Req2, State2};
     %% TODO handle error
     {error, _, _} = Error ->
       Error
