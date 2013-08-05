@@ -22,8 +22,14 @@ body(ID, Item, Req, State) ->
   Shipping = fast_key:get(<<"shipping">>, Item, 0),
   Currency = fast_key:get(<<"currency">>, Item, <<"USD">>),
   Keywords = fast_key:get(<<"keywords">>, Item, []),
-  VendorID = fast_key:get(<<"vendor_id">>, Item, <<>>),
-  VendorTitle = fast_key:get(<<"vendor_title">>, Item, <<>>),
+  VendorID = fast_key:get(<<"publisher">>, Item, <<>>),
+  VendorTitle = case flokk_vendor:read(VendorID, cowboy_env:get(Req)) of
+    {ok, Vendor} ->
+      fast_key:get(<<"name">>, Vendor, <<>>);
+    _ ->
+      <<>>
+  end,
+
   Images = fast_key:get(<<"images">>, Item, <<>>),
 
   P = presenterl:create(),

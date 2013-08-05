@@ -234,7 +234,13 @@ resource_exists(Req, State = #state{command = update}) ->
 generate_etag(Req, State = #state{data = Data}) ->
   lager:debug("resource:generate_etag"),
   Hash = list_to_binary(integer_to_list(erlang:phash2(Data))),
-  {<<$","W/",Hash/binary,$">>, Req, State}.
+  OwnerID = case cowboy_resource_owner:owner_id(Req) of
+    undefined ->
+      <<>>;
+    Owner ->
+      Owner
+  end,
+  {<<$","W/",Hash/binary,"-",OwnerID/binary,$">>, Req, State}.
 
 content_types_accepted(Req, State) ->
   lager:debug("resource:content_types_accepted"),
