@@ -9,7 +9,7 @@
 -export([
   rest_init/2,
   rest_terminate/3,
-  resource_available/2,
+  service_available/2,
   allowed_methods/2,
   is_authorized/2,
   content_types_accepted/2,
@@ -88,9 +88,10 @@ rest_terminate(_Reason, _Req, _State) ->
   lager:debug("resource:terminate"),
   ok.
 
-resource_available(Req, State = #state{resource = Resource}) ->
-  lager:debug("resource:resource_available"),
-  {Resource:available(), Req, State}.
+service_available(Req, State) ->
+  lager:debug("resource:service_available"),
+  %% TODO pull a connection from the pool here
+  {true, Req, State}.
 
 allowed_methods(Req, State) ->
   lager:debug("resource:allowed_methods"),
@@ -128,25 +129,11 @@ content_types_provided(Req, State) ->
     {{<<"application">>, <<"hyper+json">>, []}, to_json}
   ], Req, State}.
 
-%% Call
-to_json(Req, State = #state{command = call, handler = Handler, body = undefined}) ->
-  lager:debug("resource:to_json"),
-  format_json(Handler:body(Req, State), Handler);
-to_json(Req, State = #state{command = call, handler = Handler, body = Body}) ->
-  lager:debug("resource:to_json"),
-  format_json(Handler:body(Body, Req, State), Handler);
-
-%% List
-to_json(Req, State = #state{command = list, handler = Handler, data = Data}) ->
-  lager:debug("resource:to_json"),
-  format_json(Handler:body(Data, Req, State), Handler);
-
 %% Read
-to_json(Req, State = #state{handler = Handler, id = ID, data = Data}) ->
+% to_json(Req, State = #state{handler = Handler, data = Data}) ->
+to_json(Req, State = #state{handler = Handler, data = Data}) ->
   lager:debug("resource:to_json"),
-  format_json(Handler:body(ID, Data, Req, State), Handler).
 
-format_json({Body, Req, State}, Handler) ->
   {Path, Req} = cowboy_req:path(Req),
   {QS, Req} = cowboy_req:qs(Req),
   URL = case QS of
@@ -159,10 +146,10 @@ format_json({Body, Req, State}, Handler) ->
     {<<"root">>, [
       {<<"href">>, cowboy_base:resolve(<<>>,Req)}
     ]}
-  |Body], [{pre_encode, UndefinedToNull}]),
+  |Data], [{pre_encode, UndefinedToNull}]),
   case erlang:function_exported(Handler, ttl, 2) of
     true ->
-      {Time, Req2, State2} = Handler:ttl(Req, State#state{body=Body}),
+      {Time, Req2, State2} = Handler:ttl(Req, Data),
       CacheControl = <<"max-age=",(list_to_binary(integer_to_list(Time)))/binary,", must-revalidate, private">>,
       Req3 = cowboy_req:set_resp_header(<<"cache-control">>, CacheControl, Req2),
       {JSON, Req3, State2};
@@ -178,13 +165,16 @@ resource_exists(Req, State = #state{handler = Handler, command = Command}) when 
   lager:debug("resource:resource_exists:call"),
   case erlang:function_exported(Handler, Command, 2) of
     true ->
-      case Handler:Command(Req, State) of
-        {error, _, _} = Error ->
-          Error;
+      Resp = Handler:Command(Req, State),
+      case Resp of
         {false, _, _} = Error ->
           Error;
-        {{ok, Body}, Req2, State2} ->
-          {true, Req2, State2#state{body=Body}};
+        {ok, Req2, State2} ->
+          {Data, Req3, State3} = Handler:body(Req2, State2),
+          {true, Req3, State3#state{data=Data}};
+        {{ok, Data}, Req2, State2} ->
+          {Data2, Req3, State3} = Handler:body(Data, Req2, State2),
+          {true, Req3, State3#state{data=Data2}};
         {{error, notfound}, Req2, State2} ->
           {false, Req2, State2};
         {{error, _}, Req2, State2} ->
@@ -192,13 +182,15 @@ resource_exists(Req, State = #state{handler = Handler, command = Command}) when 
           {false, Req2, State2}
       end;
     false ->
-      {true, Req, State}
+      {Data, Req2, State2} = Handler:body(Req, State),
+      {true, Req2, State2#state{data=Data}}
   end;
 resource_exists(Req, State = #state{handler = Handler, command = list}) ->
   lager:debug("resource:resource_exists:list"),
   case Handler:list(Req, State) of
     {{ok, Data}, Req2, State2} ->
-      {true, Req2, State2#state{data=Data}};
+      {Data2, Req3, State3} = Handler:body(Data, Req2, State2),
+      {true, Req3, State3#state{data=Data2}};
     {{error, _}, Req2, State2} ->
       %% TODO handle the error
       {false, Req2, State2};
@@ -209,7 +201,8 @@ resource_exists(Req, State = #state{handler = Handler, command = read, id = ID})
   lager:debug("resource:resource_exists:read"),
   case Handler:read(ID, Req, State) of
     {{ok, Data}, Req2, State2} ->
-      {true, Req2, State2#state{data=Data}};
+      {Data2, Req3, State3} = Handler:body(ID, Data, Req2, State2),
+      {true, Req3, State3#state{data=Data2}};
     {{error, notfound}, Req2, State2} ->
       {false, Req2, State2};
     {{error, _}, Req2, State2} ->
@@ -234,13 +227,7 @@ resource_exists(Req, State = #state{command = update}) ->
 generate_etag(Req, State = #state{data = Data}) ->
   lager:debug("resource:generate_etag"),
   Hash = list_to_binary(integer_to_list(erlang:phash2(Data))),
-  OwnerID = case cowboy_resource_owner:owner_id(Req) of
-    undefined ->
-      <<>>;
-    Owner ->
-      Owner
-  end,
-  {<<$","W/",Hash/binary,"-",OwnerID/binary,$">>, Req, State}.
+  {<<$","W/",Hash/binary,$">>, Req, State}.
 
 content_types_accepted(Req, State) ->
   lager:debug("resource:content_types_accepted"),
@@ -307,7 +294,7 @@ action_resource(Handler, Body, Req, State = #state{id = ID}) ->
       {true, Req3, State2};
     {ResBody, Req2, State2} when is_list(ResBody) ->
       Req3 = cowboy_req:set_meta(pub_event, <<"update">>, Req2),
-      case format_json({ResBody, Req3, State2}, Handler) of
+      case to_json(Req3, State2#state{data=ResBody}) of
         {JSON, Req4, State3} ->
           Req5 = cowboy_req:set_resp_body(JSON, Req4),
           {true, Req5, State3};

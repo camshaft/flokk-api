@@ -82,8 +82,7 @@ handle_call({read, ID}, _, State = #state{flokk_ui_client_id = ID, flokk_ui_clie
     {<<"redirect_uri">>, [
       <<"http://localhost:5000">>,
       <<"http://flokk-ui.dev:5000">>,
-      <<"https://test.theflokk.com">>,
-      <<"https://www.theflokk.com">>
+      <<"https://*.theflokk.com">>
     ]},
     {<<"internal">>, true},
     {<<"scopes">>, Scopes}
@@ -98,8 +97,7 @@ handle_call({read, ID}, _, State = #state{flokk_admin_client_id = ID, flokk_admi
     {<<"redirect_uri">>, [
       <<"http://localhost:5003">>,
       <<"http://flokk-admin.dev:5000">>,
-      <<"https://admin-test.theflokk.com">>,
-      <<"https://admin.theflokk.com">>
+      <<"https://*.theflokk.com">>
     ]},
     {<<"internal">>, true},
     {<<"scopes">>, Scopes}
