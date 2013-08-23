@@ -150,6 +150,10 @@ to_json(Req, State = #state{handler = Handler, data = Data}) ->
   case erlang:function_exported(Handler, ttl, 2) of
     true ->
       {Time, Req2, State2} = Handler:ttl(Req, Data),
+      % CacheControl = case erlang:function_exported(Handler, cache_control, 2) of
+      %   pattern when guard ->
+      %     body
+      % end
       CacheControl = <<"max-age=",(list_to_binary(integer_to_list(Time)))/binary,", must-revalidate, private">>,
       Req3 = cowboy_req:set_resp_header(<<"cache-control">>, CacheControl, Req2),
       {JSON, Req3, State2};
@@ -161,7 +165,7 @@ variances(Req, State) ->
   lager:debug("resource:variances"),
   {[<<"authorization">>], Req, State}.
 
-resource_exists(Req, State = #state{handler = Handler, command = Command}) when Command =:= call orelse Command =:= action ->
+resource_exists(Req, State = #state{handler = Handler, command = Command, method = <<"GET">>}) when Command =:= call orelse Command =:= action ->
   lager:debug("resource:resource_exists:call"),
   case erlang:function_exported(Handler, Command, 2) of
     true ->
@@ -185,6 +189,8 @@ resource_exists(Req, State = #state{handler = Handler, command = Command}) when 
       {Data, Req2, State2} = Handler:body(Req, State),
       {true, Req2, State2#state{data=Data}}
   end;
+resource_exists(Req, State = #state{command = Command}) when Command =:= call orelse Command =:= action ->
+  {true, Req, State};
 resource_exists(Req, State = #state{handler = Handler, command = list}) ->
   lager:debug("resource:resource_exists:list"),
   case Handler:list(Req, State) of

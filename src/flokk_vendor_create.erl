@@ -14,8 +14,8 @@ scope(Req, State) ->
   {?SCOPE, Req, State}.
 
 create(Body, Req, State) ->
-  Result = flokk_vendor:create(Body, cowboy_env:get(Req)),
-  {Result, Req, State}.
+  Response = flokk_vendor:create(Body, cowboy_env:get(Req)),
+  {Response, Req, State}.
 
 location(ID, Req, State) ->
   {cowboy_base:resolve([<<"vendors">>, ID], Req), Req, State}.
