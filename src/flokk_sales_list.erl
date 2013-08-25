@@ -10,14 +10,17 @@ init(Req, _Opts) ->
 
 list(Req, State) ->
   case flokk_category:list(cowboy_env:get(Req)) of
-    {ok, [{ID, _}|_]} ->
-      Response = flokk_item:find(<<"category">>, ID, cowboy_env:get(Req)),
-      {Response, Req, State};
+    {ok, Categories} ->
+      Response = [begin
+        {ok, Items} = flokk_item:find(<<"category">>, ID, cowboy_env:get(Req)),
+        Items
+      end || {ID, _} <- Categories],
+      {{ok, Response}, Req, State};
     _ ->
       {{ok, []}, Req, State}
   end.
 
-body(Items, Req, State) ->
+body(Categories, Req, State) ->
 
   Body = [
     {<<"sections">>, [
@@ -30,7 +33,7 @@ body(Items, Req, State) ->
           ] || ID <- Items
         ]}
       ]
-    ]}
+    || Items <- Categories]}
   ],
 
   {Body, Req, State}.
