@@ -4,6 +4,11 @@
     {command, call}
   ]},
 
+  {"/sales", flokk_resource, [
+    {resource, flokk_sales_list},
+    {command, list}
+  ]},
+
   {"/categories[/:id]", flokk_resource, [
     {resource, flokk_category}
   ]},

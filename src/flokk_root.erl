@@ -11,10 +11,10 @@ body(Req, State) ->
   P = presenterl:create(),
 
   P ! [
-    % {<<"sales">>, [
-    %   {<<"href">>, cowboy_base:resolve(<<"sales">>, Req)},
-    %   {<<"title">>, <<"Sales">>}
-    % ]},
+    {<<"sales">>, [
+      {<<"href">>, cowboy_base:resolve(<<"sales">>, Req)},
+      {<<"title">>, <<"Sales">>}
+    ]},
     {<<"categories">>, [
       {<<"href">>, cowboy_base:resolve(<<"categories">>, Req)},
       {<<"title">>, <<"Categories">>}
