@@ -12,8 +12,10 @@ list(Req, State) ->
   case flokk_category:list(cowboy_env:get(Req)) of
     {ok, Categories} ->
       Response = [begin
-        {ok, Items} = flokk_item:find(<<"category">>, ID, cowboy_env:get(Req)),
-        Items
+        %% TODO use batch
+        CategoryURL = cowboy_base:resolve([<<"categories">>, ID], Req),
+        {ok, Items} = flokk_item_scoreboard:top(CategoryURL),
+        {CategoryURL, Items}
       end || {ID, _} <- Categories],
       {{ok, Response}, Req, State};
     _ ->
@@ -27,13 +29,14 @@ body(Categories, Req, State) ->
       [
         {<<"image">>, <<"https://d30wvy161n1c3v.cloudfront.net/livingroom.svg">>},
         {<<"main">>, <<"https://d30wvy161n1c3v.cloudfront.net/1c5a09ae839d0e0086b134d0ac3c6416-clock.jpg">>},
+        {<<"category">>, Category},
         {<<"items">>, [
           [
-            {<<"href">>, cowboy_base:resolve([<<"items">>, ID], Req)}
-          ] || ID <- Items
+            {<<"href">>, cowboy_base:resolve([<<"items">>, fast_key:get(<<"item">>, Item)], Req)}
+          ] || Item <- Items
         ]}
       ]
-    || Items <- Categories]}
+    || {Category, Items} <- Categories]}
   ],
 
   {Body, Req, State}.

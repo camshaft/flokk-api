@@ -41,6 +41,7 @@ user_watches(_User, _Env) ->
 user_summary(_User, _Env) ->
   {ok, 0}.
 
+%% TODO use crdts
 watch(Item, User, Env) ->
   case ?FLOKK_DB:get(?BUCKET(Env), Item) of
     {ok, Set} ->
