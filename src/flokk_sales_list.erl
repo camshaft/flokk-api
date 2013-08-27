@@ -14,7 +14,7 @@ list(Req, State) ->
       Response = [begin
         %% TODO use batch
         CategoryURL = cowboy_base:resolve([<<"categories">>, ID], Req),
-        {ok, Items} = flokk_item_scoreboard:top(CategoryURL),
+        {ok, Items} = flokk_item_scoreboard:top(ID),
         {CategoryURL, Items}
       end || {ID, _} <- Categories],
       {{ok, Response}, Req, State};

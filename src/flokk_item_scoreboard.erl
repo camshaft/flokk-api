@@ -24,7 +24,7 @@ top(Board) ->
   gen_server:call(?MODULE, {top_items, Board}).
 
 set(Item, Score, Board) ->
-  gen_server:cast(?MODULE, {set, Item, Score, Board}).
+  gen_server:cast(?MODULE, {set, Item, integer_to_binary(Score), Board}).
 
 remove(Item, Board) ->
   gen_server:cast(?MODULE, {remove, Item, Board}).
@@ -50,7 +50,7 @@ handle_call(stop, _, State) ->
 handle_call(_, _, State = #state{client = undefined}) ->
   {reply, {ok, []}, State};
 handle_call({top_items, Board}, _, State = #state{client = C}) ->
-  Query = [<<"ZREVRANGE">>, Board, <<"0">>, integer_to_binary(4 - 1), <<"WITHSCORES">>],
+  Query = [<<"ZREVRANGE">>, Board, <<"0">>, <<"4">>, <<"WITHSCORES">>],
   Res = case eredis:q(C, Query) of
     {ok, Items} ->
       group_item_score(Items, []);
@@ -61,13 +61,17 @@ handle_call({top_items, Board}, _, State = #state{client = C}) ->
 handle_call(_, _, State) ->
   {reply, ignore, State}.
 
+handle_cast({set, Item, <<"0">>, Board}, State = #state{client = C}) ->
+  eredis:q(C, [<<"ZREM">>, Board, Item]),
+  {noreply, State};
 handle_cast({set, Item, Score, Board}, State = #state{client = C}) ->
   eredis:q(C, [<<"ZADD">>, Board, Score, Item]),
   {noreply, State};
-handle_cast({set, Item, Board}, State = #state{client = C}) ->
+handle_cast({remove, Item, Board}, State = #state{client = C}) ->
   eredis:q(C, [<<"ZREM">>, Board, Item]),
   {noreply, State};
-handle_cast(_, State) ->
+handle_cast(_Req, State) ->
+  io:format("Unhandled cast ~p~n", [_Req]),
   {noreply, State}.
 
 handle_info(_, State) ->
@@ -83,5 +87,5 @@ code_change(_OldVsn, State, _Extra) ->
 
 group_item_score([], Acc) ->
   lists:reverse(Acc);
-group_item_score([Item,Score|Rest], Acc) ->
+group_item_score([Item, Score|Rest], Acc) ->
   group_item_score(Rest, [[{<<"item">>, Item}, {<<"score">>, Score}]|Acc]).
