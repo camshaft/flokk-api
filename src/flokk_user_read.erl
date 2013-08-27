@@ -48,6 +48,15 @@ body(ID, User, Req, State) ->
 
   presenterl:conditional([
     IsOwner,
+    cowboy_resource_owner:is_authorized(<<"user.watches">>, Req)
+  ], [
+    {<<"watches">>, [
+      {<<"href">>, cowboy_base:resolve([<<"users">>, ID, <<"watches">>], Req)}
+    ]}
+  ], P),
+
+  presenterl:conditional([
+    IsOwner,
     cowboy_resource_owner:is_authorized(<<"user.credit-card.read">>, Req)
   ], [
     {<<"creditCard">>, [

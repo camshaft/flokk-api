@@ -12,58 +12,83 @@
 
 %% Bucket name.
 -define(BUCKET(Env), <<"fk_watcher_", Env/binary>>).
+-define(INDEX, <<"watches">>).
 
 %% API.
 
 item_watchers(Item, Env) ->
-  case ?FLOKK_DB:get(?BUCKET(Env), Item) of
-    {ok, Set} ->
-      {ok, gb_sets:to_list(Set)};
+  ?FLOKK_DB:keys_by_index(?BUCKET(Env), ?INDEX, Item).
+
+item_summary(Item, User, Env) ->
+  case item_watchers(Item, Env) of
+    {ok, List} ->
+      {ok, {List, lists:member(User, List)}};
+    Error ->
+      Error
+  end.
+
+user_watches(User, Env) ->
+  case ?FLOKK_DB:get_obj(?BUCKET(Env), User) of
+    {ok, Obj} ->
+      case ?FLOKK_DB:get_secondary_binary_index(?INDEX, Obj) of
+        Watches when is_list(Watches) ->
+          {ok, Watches};
+        notfound ->
+          {ok, []};
+        Other ->
+          Other
+      end;
     {error, notfound} ->
       {ok, []};
     Error ->
       Error
   end.
 
-item_summary(Item, User, Env) ->
-  case ?FLOKK_DB:get(?BUCKET(Env), Item) of
-    {ok, Set} ->
-      return_list({ok, Set}, Set, User);
+user_summary(_User, _Env) ->
+  {ok, 0}.
+
+watch(Item, User, Env) ->
+  case ?FLOKK_DB:get_obj(?BUCKET(Env), User) of
+    {ok, Obj} ->
+      update_item(Obj, Item, User, Env);
     {error, notfound} ->
-      {ok, {0, false}};
+      Obj = ?FLOKK_DB:new(?BUCKET(Env), User, Item),
+      update_item(Obj, Item, User, Env);
     Error ->
       Error
   end.
 
-user_watches(_User, _Env) ->
-  {ok, []}.
-
-user_summary(_User, _Env) ->
-  {ok, 0}.
-
-%% TODO use crdts
-watch(Item, User, Env) ->
-  case ?FLOKK_DB:get(?BUCKET(Env), Item) of
-    {ok, Set} ->
-      NewSet = gb_sets:add_element(User, Set),
-      return_list(?FLOKK_DB:update(?BUCKET(Env), Item, NewSet), NewSet, User);
-    {error, notfound} ->
-      Set = gb_sets:from_list([User]),
-      return_list(?FLOKK_DB:update(?BUCKET(Env), Item, Set), Set, User);
+update_item(Obj, Item, User, Env) ->
+  Obj2 = ?FLOKK_DB:binary_index(?INDEX, [Item], Obj),
+  case ?FLOKK_DB:put(Obj2) of
+    ok ->
+      case item_summary(Item, User, Env) of
+        %% We just added them to the list so they have to be here
+        {ok, {List, false}} ->
+          {ok, {[User|List], true}};
+        Other ->
+          Other
+      end;
     Error ->
       Error
   end.
 
 unwatch(Item, User, Env) ->
-  case ?FLOKK_DB:get(?BUCKET(Env), Item) of
-    {ok, Set} ->
-      NewSet = gb_sets:del_element(User, Set),
-      return_list(?FLOKK_DB:update(?BUCKET(Env), Item, NewSet), NewSet, User);
+  case ?FLOKK_DB:get_obj(?BUCKET(Env), User) of
+    {ok, Obj} ->
+      Obj2 = ?FLOKK_DB:remove_binary_index(?INDEX, Obj),
+      case ?FLOKK_DB:put(Obj2) of
+        ok ->
+          case item_summary(Item, User, Env) of
+            %% We just added them to the list so they have to be here
+            {ok, {List, true}} ->
+              {ok, {lists:delete(User, List), false}};
+            Other ->
+              Other
+          end;
+        Error ->
+          Error
+      end;
     Error ->
       Error
   end.
-
-return_list({ok, _}, Set, User) ->
-  {ok, {gb_sets:size(Set), gb_sets:is_member(User, Set)}};
-return_list(Error, _, _User) ->
-  Error.

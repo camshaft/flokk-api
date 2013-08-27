@@ -13,7 +13,7 @@ read(ItemID, Req, State) ->
   Response = flokk_watcher:item_summary(ItemID, OwnerID, cowboy_env:get(Req)),
   {Response, Req, State}.
 
-body(ItemID, {Count, IsWatching}, Req, State) ->
+body(ItemID, {Watchers, IsWatching}, Req, State) ->
 
   Url = cowboy_base:resolve([<<"items">>, ItemID, <<"watchers">>], Req),
 
@@ -23,23 +23,20 @@ body(ItemID, {Count, IsWatching}, Req, State) ->
     {<<"item">>, [
       {<<"href">>, cowboy_base:resolve([<<"items">>, ItemID], Req)}
     ]},
-    {<<"count">>, Count}
+    {<<"count">>, length(Watchers)}
   ],
 
   presenterl:conditional([
     cowboy_resource_owner:is_authorized(<<"item.watchers">>, Req)
-  ], fun() ->
-    {ok, Watchers} = flokk_watcher:item_watchers(ItemID, cowboy_env:get(Req)),
-    [
-      {<<"watchers">>,
+  ], [
+    {<<"watchers">>,
+      [
         [
-          [
-            {<<"href">>, cowboy_base:resolve([<<"users">>, Watcher], Req)}
-          ]
-        || Watcher <- Watchers]
-      }
-    ] 
-  end, P),
+          {<<"href">>, cowboy_base:resolve([<<"users">>, Watcher], Req)}
+        ]
+      || Watcher <- Watchers]
+    }
+  ], P),
 
   IsAllowed = cowboy_resource_owner:is_authorized(<<"user.watches">>, Req),
 

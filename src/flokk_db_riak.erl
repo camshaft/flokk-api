@@ -10,6 +10,10 @@
 -export([set_body/2]).
 -export([binary_index/3]).
 -export([integer_index/3]).
+-export([remove_binary_index/2]).
+-export([remove_integer_index/2]).
+-export([get_secondary_binary_index/2]).
+-export([get_secondary_integer_index/2]).
 
 %% connection
 -export([ping/0]).
@@ -130,6 +134,24 @@ integer_index(Index, Value, Obj)->
   MD = riakc_obj:get_update_metadata(Obj),
   MD2 = riakc_obj:add_secondary_index(MD, [{{integer_index, Index}, Value}]),
   riakc_obj:update_metadata(Obj, MD2).
+
+remove_binary_index(Index, Obj)->
+  MD = riakc_obj:get_update_metadata(Obj),
+  MD2 = riakc_obj:delete_secondary_index(MD, {binary_index, Index}),
+  riakc_obj:update_metadata(Obj, MD2).
+
+remove_integer_index(Index, Obj)->
+  MD = riakc_obj:get_update_metadata(Obj),
+  MD2 = riakc_obj:delete_secondary_index(MD, {integer_index, Index}),
+  riakc_obj:update_metadata(Obj, MD2).
+
+get_secondary_binary_index(Index, Obj)->
+  MD = riakc_obj:get_update_metadata(Obj),
+  riakc_obj:get_secondary_index(MD, {binary_index, Index}).
+
+get_secondary_integer_index(Index, Obj)->
+  MD = riakc_obj:get_update_metadata(Obj),
+  riakc_obj:get_secondary_index(MD, {integer_index, Index}).
 
 %% connection
 
