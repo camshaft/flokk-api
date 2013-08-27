@@ -22,7 +22,7 @@ start_link(Backend) ->
 init([Backend]) ->
   RiakUrl = get_riak_url(),
   PusherURL = simple_env:get_binary("PUSHER_URL"),
-  ScoreboardURL = simple_env:get_binary("SCOREBOARD_URL"),
+  ScoreboardURL = simple_env:get("SCOREBOARD_URL"),
 
   gen_batch_sup:start_link(),
 
