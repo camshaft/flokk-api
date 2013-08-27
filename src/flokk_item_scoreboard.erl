@@ -3,6 +3,7 @@
 %% api
 -export([top/1]).
 -export([set/3]).
+-export([remove/2]).
 
 %% gen_server.
 -export([start_link/1]).
@@ -14,7 +15,7 @@
 -export([code_change/3]).
 
 -record (state, {
-  url
+  client
 }).
 
 %% api
@@ -25,26 +26,46 @@ top(Board) ->
 set(Item, Score, Board) ->
   gen_server:cast(?MODULE, {set, Item, Score, Board}).
 
+remove(Item, Board) ->
+  gen_server:cast(?MODULE, {remove, Item, Board}).
+
 %% gen_server.
 
 start_link(URL) ->
   gen_server:start_link({local, ?MODULE}, ?MODULE, URL, []).
 
 init(URL) ->
-  {ok, #state{url = URL}}.
+  {ok, C} = case URL of
+    undefined ->
+      eredis:start_link();
+    RedisUrl ->
+      {ok, {redis, Creds, Host, Port, _, []}} = http_uri:parse(RedisUrl),
+      [_, Password] = binary:split(list_to_binary(Creds), <<":">>),
+      eredis:start_link(Host, Port, undefined, binary_to_list(Password))
+  end,
+  {ok, #state{client = C}}.
 
 handle_call(stop, _, State) ->
   {stop, normal, stopped, State};
-handle_call(_, _, State = #state{url = undefined}) ->
+handle_call(_, _, State = #state{client = undefined}) ->
   {reply, {ok, []}, State};
-handle_call({top_items, Board}, _, State) ->
-  {ok, Root, Client, State2} = root(State),
-  {ok, Response, _Client2, State3} = submit(<<"search">>, [{<<"board">>, Board}], Root, Client, State2),
-  {reply, {ok, fast_key:get(<<"top-items">>, Response)}, State3};
+handle_call({top_items, Board}, _, State = #state{client = C}) ->
+  Query = [<<"ZREVRANGE">>, Board, <<"0">>, integer_to_binary(4 - 1), <<"WITHSCORES">>],
+  Res = case eredis:q(C, Query) of
+    {ok, Items} ->
+      group_item_score(Items, []);
+    {error, _} ->
+      []
+  end,
+  {reply, {ok, Res}, State};
 handle_call(_, _, State) ->
   {reply, ignore, State}.
 
-handle_cast({set, _Item, _Score, _Board}, State) ->
+handle_cast({set, Item, Score, Board}, State = #state{client = C}) ->
+  eredis:q(C, [<<"ZADD">>, Board, Score, Item]),
+  {noreply, State};
+handle_cast({set, Item, Board}, State = #state{client = C}) ->
+  eredis:q(C, [<<"ZREM">>, Board, Item]),
   {noreply, State};
 handle_cast(_, State) ->
   {noreply, State}.
@@ -60,35 +81,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% private
 
-root(State = #state{url = URL}) ->
-  %% TODO cache the root
-  {ok, Client} = cowboy_client:init([]),
-  {ok, Client2} = cowboy_client:request(<<"GET">>, URL, Client),
-  {ok, 200, _Headers, Client3} = cowboy_client:response(Client2),
-  {ok, Data, Client4} = cowboy_client:response_body(Client3),
-  {ok, jsx:decode(Data), Client4, State}.
-
-submit(Rel, Params, Root, Client, State) ->
-  Form = fast_key:get(Rel, Root),
-  Method = fast_key:get(<<"method">>, Form, <<"GET">>),
-  Action = fast_key:get(<<"action">>, Form),
-  do_submit(Method, Action, Params, Client, State).
-
-do_submit(<<"GET">>, Action, Params, Client, State) ->
-  %% TODO validate the inputs
-  URL = <<Action/binary, "?", (form_encode(Params, []))/binary>>,
-  {ok, Client2} = cowboy_client:request(<<"GET">>, URL, [], Client),
-  {ok, 200, _Headers, Client3} = cowboy_client:response(Client2),
-  {ok, Data, Client4} = cowboy_client:response_body(Client3),
-  {ok, jsx:decode(Data), Client4, State};
-do_submit(Method, Action, Params, Client, State) ->
-  %% TODO validate the inputs
-  {ok, Client2} = cowboy_client:request(Method, Action, [], jsx:encode(Params), Client),
-  {ok, 200, _Headers, Client3} = cowboy_client:response(Client2),
-  {ok, Data, Client4} = cowboy_client:response_body(Client3),
-  {ok, jsx:decode(Data), Client4, State}.
-
-form_encode([{Key, Value}], Acc) ->
-  list_to_binary([Acc, Key, <<"=">>, cowboy_http:urlencode(Value)]);
-form_encode([{Key, Value}|Params], Acc) ->
-  form_encode(Params, [Acc, Key, <<"=">>, cowboy_http:urlencode(Value), <<"&">>]).
+group_item_score([], Acc) ->
+  lists:reverse(Acc);
+group_item_score([Item,Score|Rest], Acc) ->
+  group_item_score(Rest, [[{<<"item">>, Item}, {<<"score">>, Score}]|Acc]).
