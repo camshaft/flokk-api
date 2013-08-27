@@ -14,6 +14,7 @@ read(ID, Req, State) ->
 
 body(ID, Category, Req, State) ->
   URL = cowboy_base:resolve([<<"category">>, ID], Req),
+
   Title = fast_key:get(<<"title">>, Category, <<>>),
   Label = fast_key:get(<<"label">>, Category, <<>>),
   Promo = fast_key:get(<<"promo">>, Category, <<>>),
@@ -30,7 +31,7 @@ body(ID, Category, Req, State) ->
       {<<"type">>, <<"image/svg">>}
     ]},
     {<<"promo">>, [
-      {<<"href">>, Label},
+      {<<"href">>, Promo},
       {<<"type">>, <<"image/jpg">>}
     ]}
   ],
@@ -39,7 +40,7 @@ body(ID, Category, Req, State) ->
     cowboy_resource_owner:is_authorized([<<"category.update">>], Req)
   ], [
     {<<"action">>, URL},
-    {<<"method">>, <<"POST">>},
+    {<<"method">>, <<"PUT">>},
     {<<"input">>, [
       {<<"title">>, [
         {<<"type">>, <<"text">>},

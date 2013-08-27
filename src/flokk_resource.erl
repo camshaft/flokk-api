@@ -313,7 +313,21 @@ action_resource(Handler, Body, Req, State = #state{id = ID}) ->
   end.
 
 update_resource(Handler, Body, Req, State = #state{id = ID}) ->
-  Handler:update(ID, Body, Req, State).
+  case Handler:update(ID, Body, Req, State) of
+    {{ok, ResBody}, Req2, State2} ->
+      Req3 = cowboy_req:set_meta(pub_event, <<"update">>, Req2),
+      case to_json(Req3, State2#state{data=ResBody}) of
+        {JSON, Req4, State3} ->
+          Req5 = cowboy_req:set_resp_body(JSON, Req4),
+          {true, Req5, State3};
+        _Err ->
+          io:format("~p~n", [_Err]),
+          {false, Req2, State2}
+      end;
+    _Err ->
+      io:format("~p~n", [_Err]),
+      {false, Req, State}
+  end.
 
 delete_resource(Req, State = #state{handler = Handler, id = ID}) ->
   lager:debug("resource:delete_resource"),
