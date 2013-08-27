@@ -15,6 +15,8 @@ read(ID, Req, State) ->
 body(ID, Category, Req, State) ->
   URL = cowboy_base:resolve([<<"category">>, ID], Req),
   Title = fast_key:get(<<"title">>, Category, <<>>),
+  Label = fast_key:get(<<"label">>, Category, <<>>),
+  Promo = fast_key:get(<<"promo">>, Category, <<>>),
 
   P = presenterl:create(),
 
@@ -22,6 +24,14 @@ body(ID, Category, Req, State) ->
     {<<"title">>, Title},
     {<<"items">>, [
       {<<"href">>, cowboy_base:resolve([<<"categories">>, ID, <<"items">>], Req)}
+    ]},
+    {<<"label">>, [
+      {<<"href">>, Label},
+      {<<"type">>, <<"image/svg">>}
+    ]},
+    {<<"promo">>, [
+      {<<"href">>, Label},
+      {<<"type">>, <<"image/jpg">>}
     ]}
   ],
 
@@ -34,6 +44,14 @@ body(ID, Category, Req, State) ->
       {<<"title">>, [
         {<<"type">>, <<"text">>},
         {<<"value">>, Title}
+      ]},
+      {<<"label">>, [
+        {<<"type">>, <<"url">>},
+        {<<"value">>, Label}
+      ]},
+      {<<"promo">>, [
+        {<<"type">>, <<"url">>},
+        {<<"value">>, Promo}
       ]}
     ]}
   ], P),

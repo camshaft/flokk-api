@@ -32,6 +32,12 @@ body(Categories, Req, State) ->
       {<<"input">>, [
         {<<"title">>, [
           {<<"type">>, <<"text">>}
+        ]},
+        {<<"label">>, [
+          {<<"type">>, <<"url">>}
+        ]},
+        {<<"promo">>, [
+          {<<"type">>, <<"url">>}
         ]}
       ]}
     ]}

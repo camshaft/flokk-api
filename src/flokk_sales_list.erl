@@ -27,9 +27,7 @@ body(Categories, Req, State) ->
   Body = [
     {<<"sections">>, [
       [
-        {<<"image">>, <<"https://d30wvy161n1c3v.cloudfront.net/livingroom.svg">>},
-        {<<"main">>, <<"https://d30wvy161n1c3v.cloudfront.net/1c5a09ae839d0e0086b134d0ac3c6416-clock.jpg">>},
-        {<<"category">>, Category},
+        {<<"href">>, Category},
         {<<"items">>, [
           [
             {<<"href">>, cowboy_base:resolve([<<"items">>, fast_key:get(<<"item">>, Item)], Req)}
