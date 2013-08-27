@@ -25,7 +25,7 @@ body(Vendors, Req, State) ->
       {<<"action">>, cowboy_base:resolve(<<"vendors">>, Req)},
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
-        {<<"title">>, [
+        {<<"name">>, [
           {<<"type">>, <<"text">>}
         ]}
       ]}
@@ -35,7 +35,7 @@ body(Vendors, Req, State) ->
   {Body1, Req, State}.
 
 format_vendor(ID, Vendor, Req)->
-  Title = fast_key:get(<<"title">>, Vendor),
+  Title = fast_key:get(<<"name">>, Vendor),
   [
     {<<"href">>, cowboy_base:resolve([<<"vendors">>, ID], Req)},
     {<<"title">>, Title}
