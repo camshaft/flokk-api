@@ -24,11 +24,17 @@ unwatch(ItemID, _Body, Req, State) ->
   response(unwatch, ItemID, Req, State).
 
 response(Action, ItemID, Req, State) ->
+  %% Get the item to make sure it exists
+  {ok, Item} = flokk_item:read(ItemID, cowboy_env:get(Req)),
+
   OwnerID = cowboy_resource_owner:owner_id(Req),
-  {ok, Watchers = {_Count, _}} = flokk_watcher:Action(ItemID, OwnerID),
+  {ok, Report = {Count, _}} = flokk_watcher:Action(ItemID, OwnerID, cowboy_env:get(Req)),
   URL = cowboy_base:resolve([<<"items">>, ItemID, <<"watchers">>], Req),
   UserWatches = cowboy_base:resolve([<<"users">>, OwnerID, <<"watches">>], Req),
 
+  %% Set the new score based on the watcher count
+  flokk_item_scoreboard:set(ItemID, Count, fast_key:get(<<"category">>, Item)),
+
   Req2 = cowboy_req:set_resp_header(<<"content-location">>, URL, Req),
   Req3 = cowboy_req:set_resp_header(<<"link">>, <<"<", UserWatches/binary, ">; rel=invalidates">>, Req2),
-  flokk_watcher_read:body(ItemID, Watchers, Req3, State).
+  flokk_watcher_read:body(ItemID, Report, Req3, State).
