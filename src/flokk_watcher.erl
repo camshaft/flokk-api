@@ -42,8 +42,13 @@ user_watches(User, Env) ->
       Error
   end.
 
-user_summary(_User, _Env) ->
-  {ok, 0}.
+user_summary(User, Env) ->
+  case ?FLOKK_DB:keys_by_index(?BUCKET(Env), ?INDEX_USER(User), <<1>>) of
+    {ok, Items} ->
+      {ok, length(Items)};
+    Error ->
+      Error
+  end.
 
 watch(Item, User, Env) ->
   Obj = ?FLOKK_DB:new(?BUCKET(Env), ?KEY(Item, User), <<1>>),
