@@ -12,12 +12,19 @@
 
 %% Bucket name.
 -define(BUCKET(Env), <<"fk_watcher_", Env/binary>>).
--define(INDEX, <<"watches">>).
+-define(KEY(Item, User), <<Item/binary, ":", User/binary>>).
+-define(INDEX_ITEM(Item), <<"user_", Item/binary>>).
+-define(INDEX_USER(User), <<"item_", User/binary>>).
 
 %% API.
 
 item_watchers(Item, Env) ->
-  ?FLOKK_DB:keys_by_index(?BUCKET(Env), ?INDEX, Item).
+  case ?FLOKK_DB:keys_by_index(?BUCKET(Env), ?INDEX_ITEM(Item), <<1>>) of
+    {ok, Users} ->
+      {ok, format(Users, [], user)};
+    Error ->
+      Error
+  end.
 
 item_summary(Item, User, Env) ->
   case item_watchers(Item, Env) of
@@ -28,18 +35,9 @@ item_summary(Item, User, Env) ->
   end.
 
 user_watches(User, Env) ->
-  case ?FLOKK_DB:get_obj(?BUCKET(Env), User) of
-    {ok, Obj} ->
-      case ?FLOKK_DB:get_secondary_binary_index(?INDEX, Obj) of
-        Watches when is_list(Watches) ->
-          {ok, Watches};
-        notfound ->
-          {ok, []};
-        Other ->
-          Other
-      end;
-    {error, notfound} ->
-      {ok, []};
+  case ?FLOKK_DB:keys_by_index(?BUCKET(Env), ?INDEX_USER(User), <<1>>) of
+    {ok, Items} ->
+      {ok, format(Items, [], item)};
     Error ->
       Error
   end.
@@ -48,19 +46,10 @@ user_summary(_User, _Env) ->
   {ok, 0}.
 
 watch(Item, User, Env) ->
-  case ?FLOKK_DB:get_obj(?BUCKET(Env), User) of
-    {ok, Obj} ->
-      update_item(Obj, Item, User, Env);
-    {error, notfound} ->
-      Obj = ?FLOKK_DB:new(?BUCKET(Env), User, Item),
-      update_item(Obj, Item, User, Env);
-    Error ->
-      Error
-  end.
-
-update_item(Obj, Item, User, Env) ->
-  Obj2 = ?FLOKK_DB:binary_index(?INDEX, [Item], Obj),
-  case ?FLOKK_DB:put(Obj2) of
+  Obj = ?FLOKK_DB:new(?BUCKET(Env), ?KEY(Item, User), <<1>>),
+  Obj2 = ?FLOKK_DB:binary_index(?INDEX_ITEM(Item), [<<1>>], Obj),
+  Obj3 = ?FLOKK_DB:binary_index(?INDEX_USER(User), [<<1>>], Obj2),
+  case ?FLOKK_DB:put(Obj3) of
     ok ->
       case item_summary(Item, User, Env) of
         %% We just added them to the list so they have to be here
@@ -74,21 +63,24 @@ update_item(Obj, Item, User, Env) ->
   end.
 
 unwatch(Item, User, Env) ->
-  case ?FLOKK_DB:get_obj(?BUCKET(Env), User) of
-    {ok, Obj} ->
-      Obj2 = ?FLOKK_DB:remove_binary_index(?INDEX, Obj),
-      case ?FLOKK_DB:put(Obj2) of
-        ok ->
-          case item_summary(Item, User, Env) of
-            %% We just added them to the list so they have to be here
-            {ok, {List, true}} ->
-              {ok, {lists:delete(User, List), false}};
-            Other ->
-              Other
-          end;
-        Error ->
-          Error
+  case ?FLOKK_DB:delete(?BUCKET(Env), ?KEY(Item, User)) of
+    ok ->
+      case item_summary(Item, User, Env) of
+        %% We just removed them from the list so they can't to be here
+        {ok, {List, true}} ->
+          {ok, {lists:delete(User, List), false}};
+        Other ->
+          Other
       end;
     Error ->
       Error
   end.
+
+format([], Acc, _Prop) ->
+  Acc;
+format([Key|Keys], Acc, item) ->
+  [Item, _] = binary:split(Key, <<":">>),
+  format(Keys, [Item|Acc], item);
+format([Key|Keys], Acc, user) ->
+  [_, User] = binary:split(Key, <<":">>),
+  format(Keys, [User|Acc], user).
