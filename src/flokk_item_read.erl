@@ -30,7 +30,7 @@ body(ID, Item, Req, State) ->
       <<>>
   end,
 
-  Images = fast_key:get(<<"images">>, Item, <<>>),
+  Images = fast_key:get(<<"images">>, Item, []),
 
   P = presenterl:create(),
 
