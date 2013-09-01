@@ -14,7 +14,11 @@ call(Req, State) ->
   {Response, Req, State}.
 
 body(Items, Req, State) ->
+  {Category, Req} = cowboy_req:binding(id, Req),
   Body = [
+    {<<"category">>, [
+      {<<"href">>, cowboy_base:resolve([<<"categories">>, Category], Req)}
+    ]},
     {<<"items">>, [
       [
         {<<"href">>, cowboy_base:resolve([<<"items">>, ID], Req)}
