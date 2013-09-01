@@ -50,7 +50,7 @@ handle_call(stop, _, State) ->
 handle_call(_, _, State = #state{client = undefined}) ->
   {reply, {ok, []}, State};
 handle_call({top_items, Board}, _, State = #state{client = C}) ->
-  Query = [<<"ZREVRANGE">>, Board, <<"0">>, <<"1">>, <<"WITHSCORES">>],
+  Query = [<<"ZREVRANGE">>, Board, <<"0">>, <<"4">>, <<"WITHSCORES">>],
   Res = case eredis:q(C, Query) of
     {ok, Items} ->
       group_item_score(Items, []);
