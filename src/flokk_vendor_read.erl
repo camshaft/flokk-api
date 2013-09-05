@@ -13,7 +13,7 @@ read(ID, Req, State) ->
   {Response, Req, State}.
 
 body(ID, Vendor, Req, State) ->
-  URL = cowboy_base:resolve([<<"vendor">>, ID], Req),
+  URL = cowboy_base:resolve([<<"vendors">>, ID], Req),
   Name = fast_key:get(<<"name">>, Vendor, <<>>),
   Description = fast_key:get(<<"description">>, Vendor, <<>>),
   Email = fast_key:get(<<"email">>, Vendor, <<>>),
@@ -39,20 +39,24 @@ body(ID, Vendor, Req, State) ->
 
   %% TODO also verify that they have access to this vendor profile
   Body1 = cowboy_resource_builder:authorize(<<"vendor.update">>, Req, Body, [
-    {<<"action">>, URL},
-    {<<"method">>, <<"POST">>},
-    {<<"input">>, [
-      {<<"name">>, [
-        {<<"type">>, <<"text">>},
-        {<<"value">>, Name}
+    {<<"update">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"POST">>},
+      {<<"input">>, [
+        {<<"name">>, [
+          {<<"type">>, <<"text">>},
+          {<<"value">>, Name}
+        ]}
       ]}
     ]}
   ]),
 
   %% TODO also verify that they have access to this vendor profile
   Body2 = cowboy_resource_builder:authorize(<<"vendor.delete">>, Req, Body1, [
-    {<<"action">>, URL},
-    {<<"method">>, <<"DELETE">>}
+    {<<"delete">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"DELETE">>}
+    ]}
   ]),
 
   {Body2, Req, State}.
