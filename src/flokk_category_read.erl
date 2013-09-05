@@ -13,7 +13,7 @@ read(ID, Req, State) ->
   {Response, Req, State}.
 
 body(ID, Category, Req, State) ->
-  URL = cowboy_base:resolve([<<"category">>, ID], Req),
+  URL = cowboy_base:resolve([<<"categories">>, ID], Req),
 
   Title = fast_key:get(<<"title">>, Category, <<>>),
   Label = fast_key:get(<<"label">>, Category, <<>>),
