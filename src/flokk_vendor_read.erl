@@ -41,11 +41,24 @@ body(ID, Vendor, Req, State) ->
   Body1 = cowboy_resource_builder:authorize(<<"vendor.update">>, Req, Body, [
     {<<"update">>, [
       {<<"action">>, URL},
-      {<<"method">>, <<"POST">>},
+      {<<"method">>, <<"PUT">>},
       {<<"input">>, [
         {<<"name">>, [
           {<<"type">>, <<"text">>},
-          {<<"value">>, Name}
+          {<<"value">>, Name},
+          {<<"required">>, true}
+        ]},
+        {<<"description">>, [
+          {<<"type">>, <<"text">>},
+          {<<"value">>, Description}
+        ]},
+        {<<"email">>, [
+          {<<"type">>, <<"email">>},
+          {<<"value">>, Email}
+        ]},
+        {<<"location">>, [
+          {<<"type">>, <<"text">>},
+          {<<"location">>, Location}
         ]}
       ]}
     ]}
