@@ -6,6 +6,7 @@
 -export([create/2]).
 -export([create/3]).
 -export([update/3]).
+-export([update/4]).
 -export([body/1]).
 -export([set_body/2]).
 -export([binary_index/3]).
@@ -86,6 +87,15 @@ update(Bucket, Key, Value) ->
         Error ->
           Error
       end;
+    Error ->
+      Error
+  end.
+
+update(Bucket, Key, Value, Indicies) ->
+  Obj = ?MODULE:new(Bucket, Key, Value, Indicies),
+  case ?MODULE:create(Obj) of
+    {ok, _} ->
+      ok;
     Error ->
       Error
   end.
