@@ -26,6 +26,16 @@ body(Vendors, Req, State) ->
       {<<"method">>, <<"POST">>},
       {<<"input">>, [
         {<<"name">>, [
+          {<<"type">>, <<"text">>},
+          {<<"required">>, true}
+        ]},
+        {<<"description">>, [
+          {<<"type">>, <<"text">>}
+        ]},
+        {<<"email">>, [
+          {<<"type">>, <<"email">>}
+        ]},
+        {<<"location">>, [
           {<<"type">>, <<"text">>}
         ]}
       ]}
