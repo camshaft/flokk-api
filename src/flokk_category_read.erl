@@ -39,20 +39,22 @@ body(ID, Category, Req, State) ->
   presenterl:conditional([
     cowboy_resource_owner:is_authorized([<<"category.update">>], Req)
   ], [
-    {<<"action">>, URL},
-    {<<"method">>, <<"PUT">>},
-    {<<"input">>, [
-      {<<"title">>, [
-        {<<"type">>, <<"text">>},
-        {<<"value">>, Title}
-      ]},
-      {<<"label">>, [
-        {<<"type">>, <<"url">>},
-        {<<"value">>, Label}
-      ]},
-      {<<"promo">>, [
-        {<<"type">>, <<"url">>},
-        {<<"value">>, Promo}
+    {<<"update">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"PUT">>},
+      {<<"input">>, [
+        {<<"title">>, [
+          {<<"type">>, <<"text">>},
+          {<<"value">>, Title}
+        ]},
+        {<<"label">>, [
+          {<<"type">>, <<"url">>},
+          {<<"value">>, Label}
+        ]},
+        {<<"promo">>, [
+          {<<"type">>, <<"url">>},
+          {<<"value">>, Promo}
+        ]}
       ]}
     ]}
   ], P),
@@ -60,8 +62,10 @@ body(ID, Category, Req, State) ->
   presenterl:conditional([
     cowboy_resource_owner:is_authorized([<<"category.delete">>], Req)
   ], [
-    {<<"action">>, URL},
-    {<<"method">>, <<"DELETE">>}
+    {<<"delete">>, [
+      {<<"action">>, URL},
+      {<<"method">>, <<"DELETE">>}
+    ]}
   ], P),
 
   Body = presenterl:encode(P),
