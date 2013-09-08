@@ -181,6 +181,9 @@ resource_exists(Req, State = #state{handler = Handler, command = Command, method
           {true, Req3, State3#state{data=Data2}};
         {{error, notfound}, Req2, State2} ->
           {false, Req2, State2};
+        {{error, no_connections}, Req2, State2} ->
+          Req3 = cowboy_req:reply(503, Req2),
+          {halt, Req3, State2};
         {{error, _}, Req2, State2} ->
           %% TODO handle the error
           {false, Req2, State2}
