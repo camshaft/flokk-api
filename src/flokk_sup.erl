@@ -21,6 +21,7 @@ init([]) ->
   ScoreboardURL = simple_env:get("SCOREBOARD_URL"),
 
   gen_batch_sup:start_link(),
+  ok = riakou:start_link(simple_env:get_binary("RIAK_URL", <<"riak://localhost">>)),
 
   Procs = [
     %% Store the clients in code for now
