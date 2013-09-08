@@ -10,14 +10,16 @@
 
 start(_Type, _Args) ->
   configure(simple_env:get("ERL_ENV", "production")),
-  Port = simple_env:get_integer("PORT", 5000),
 
   Secret = simple_secrets:init(simple_env:get_binary("ACCESS_TOKEN_KEY")),
   ScopeEnum = binary:split(simple_env:get_binary("SCOPES", <<>>), <<",">>, [global]),
 
   Routes = flokk_util:load_dispatch(?MODULE),
 
-  {ok, _} = cowboy:start_http(http, 100, [{port, Port}], [
+  Listeners = simple_env:get_integer("NUM_LISTENERS", 100),
+  Port = simple_env:get_integer("PORT", 5000),
+
+  {ok, _} = cowboy:start_http(http, Listeners, [{port, Port}], [
     {compress, true},
     {env, [
       {dispatch, cowboy_router:compile(Routes)},
