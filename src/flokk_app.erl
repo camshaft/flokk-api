@@ -17,6 +17,8 @@ start(_Type, _Args) ->
 
   Routes = flokk_util:load_dispatch(?MODULE),
 
+  ok = riakou:start_link(simple_env:get_binary("RIAK_URL", <<"riak://localhost">>)),
+
   {ok, _} = cowboy:start_http(http, 100, [{port, Port}], [
     {compress, true},
     {env, [

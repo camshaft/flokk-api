@@ -26,20 +26,6 @@
 -export([keys/1]).
 -export([values/1]).
 
-%% gen_server.
--export([start_link/1]).
--export([init/1]).
--export([handle_call/3]).
--export([handle_cast/2]).
--export([handle_info/2]).
--export([terminate/2]).
--export([code_change/3]).
-
--record (state, {
-  conns,
-  hosts
-}).
-
 %% obj
 
 new(Bucket, Key)->
@@ -166,7 +152,7 @@ get_secondary_integer_index(Index, Obj)->
 %% connection
 
 ping()->
-  gen_server:call(?MODULE, ping).
+  riakou:do(ping, []).
 
 get(Bucket, Key)->
   case ?MODULE:get_obj(Bucket, Key) of
@@ -177,16 +163,16 @@ get(Bucket, Key)->
   end.
 
 get_obj(Bucket, Key)->
-  gen_server:call(?MODULE, {get, Bucket, Key}).
+  riakou:do(get, [Bucket, Key]).
 
 put(Obj)->
-  gen_server:call(?MODULE, {put, Obj}).
+  riakou:do(put, [Obj]).
 
 delete(Bucket, Key)->
-  gen_server:call(?MODULE, {delete, Bucket, Key}).
+  riakou:do(delete, [Bucket, Key]).
 
 keys(Bucket)->
-  gen_server:call(?MODULE, {list_keys, Bucket}).
+  riakou:do(list_keys, [Bucket]).
 
 values(Bucket)->
   case keys(Bucket) of
@@ -208,54 +194,11 @@ get_values(Bucket, [Key|Keys], Values) ->
   end.
 
 keys_by_index(Bucket, Key, Value) ->
-  gen_server:call(?MODULE, {keys_by_index, Bucket, Key, Value}).
-
-%% gen_server.
-
-start_link(Hosts) ->
-  gen_server:start_link({local, ?MODULE}, ?MODULE, Hosts, []).
-
-%% TODO support pooling multiple connections
-init([{Host, Port}|_] = Hosts) ->
-  {ok, Conn} = riakc_pb_socket:start_link(Host, Port, [auto_reconnect]),
-  {ok, #state{hosts = Hosts, conns = [Conn]}}.
-
-handle_call(stop, _, State) ->
-  {stop, normal, stopped, State};
-handle_call({get, Bucket, Key}, _, State = #state{conns = [Conn|_]}) ->
-  Result = riakc_pb_socket:get(Conn, Bucket, Key),
-  {reply, Result, State};
-handle_call({put, Obj}, _, State = #state{conns = [Conn|_]}) ->
-  Result = riakc_pb_socket:put(Conn, Obj),
-  {reply, Result, State};
-handle_call({delete, Bucket, Key}, _, State = #state{conns = [Conn|_]}) ->
-  Result = riakc_pb_socket:delete(Conn, Bucket, Key),
-  {reply, Result, State};
-handle_call({list_keys, Bucket}, _, State = #state{conns = [Conn|_]}) ->
-  Results = riakc_pb_socket:list_keys(Conn, Bucket),
-  {reply, Results, State};
-handle_call({keys_by_index, Bucket, Index, Value}, _, State = #state{conns = [Conn|_]}) ->
-  Results = case riakc_pb_socket:get_index_eq(Conn, Bucket, {binary_index, binary_to_list(Index)}, Value) of
+  case riakou:do(get_index_eq, [Bucket, {binary_index, binary_to_list(Key)}, Value]) of
     %% TODO upgrade to use macro
     {ok, {keys, Keys}} ->
       {ok, Keys};
     Error ->
       Error
-  end,
-  {reply, Results, State};
-handle_call(ping, _, State = #state{conns = [Conn|_]}) ->
-  {reply, riakc_pb_socket:ping(Conn), State};
-handle_call(_, _, State) ->
-  {reply, ignore, State}.
+  end.
 
-handle_cast(_, State) ->
-  {noreply, State}.
-
-handle_info(_, State) ->
-  {noreply, State}.
-
-terminate(_Reason, _State) ->
-  ok.
-
-code_change(_OldVsn, State, _Extra) ->
-  {ok, State}.

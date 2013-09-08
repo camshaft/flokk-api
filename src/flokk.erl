@@ -13,4 +13,5 @@ start() ->
   ok = application:start(ranch),
   ok = application:start(cowboy),
   ok = application:start(lager),
+  ok = riakou:start(),
   ok = application:start(flokk).
