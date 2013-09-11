@@ -22,11 +22,6 @@ init([]) ->
 
   gen_batch_sup:start_link(),
 
-  RiakURL = simple_env:get_binary("RIAK_URL", <<"riak://localhost">>),
-  Min = simple_env:get_integer("RIAK_POOL_MIN", 50),
-  Max = simple_env:get_integer("RIAK_POOL_MAX", 500),
-  ok = riakou:start_link(RiakURL, [], Min, Max),
-
   Procs = [
     %% Store the clients in code for now
     {flokk_client,
