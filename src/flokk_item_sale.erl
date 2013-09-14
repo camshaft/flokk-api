@@ -81,7 +81,7 @@ body({ID, Sale}, Req, State) ->
           ]},
           {<<"offer">>, [
             {<<"type">>, <<"hidden">>},
-            {<<"value">>, ItemUrl}
+            {<<"value">>, ID}
           ]},
           {<<"quantity">>, [
             {<<"type">>, <<"select">>},
@@ -91,12 +91,6 @@ body({ID, Sale}, Req, State) ->
             {<<"options">>, [
               [
                 {<<"value">>, 1}
-              ],
-              [
-                {<<"value">>, 2}
-              ],
-              [
-                {<<"value">>, 3}
               ]
             ]}
           ]}

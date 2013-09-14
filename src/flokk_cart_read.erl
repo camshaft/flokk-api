@@ -89,10 +89,10 @@ format_item(Items, URL, OwnerID, Req) ->
 
 format_item([], _, _, Count, _, _) ->
   Count;
-format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_integer(Quantity) ->
+format_item([{Item, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_integer(Quantity) ->
   P ! {add, cowboy_resource_builder:authorize([OwnerID, undefined], <<"cart.update">>, Req, [
     {<<"quantity">>, Quantity},
-    {<<"href">>, Offer}
+    {<<"href">>, cowboy_base:resolve([<<"items">>, Item], Req)}
   ], [
     {<<"update">>, [
       {<<"action">>, URL},
@@ -108,7 +108,7 @@ format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_inte
         ]},
         {<<"offer">>, [
           {<<"type">>, <<"hidden">>},
-          {<<"value">>, Offer}
+          {<<"value">>, Item}
         ]},
         {<<"quantity">>, [
           {<<"type">>, <<"range">>},
@@ -127,7 +127,7 @@ format_item([{Offer, Quantity}|Items], URL, Req, Count, OwnerID, P) when is_inte
         ]},
         {<<"offer">>, [
           {<<"type">>, <<"hidden">>},
-          {<<"value">>, Offer},
+          {<<"value">>, Item},
           {<<"prompt">>, <<"Quantity">>}
         ]}
       ]}

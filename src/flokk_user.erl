@@ -30,20 +30,7 @@ create(User, Env) ->
   %% Verify that the email doesn't already exist
   case ?MODULE:find(<<"email">>, fast_key:get(<<"email">>, User), Env) of
     {ok, []} ->
-      case ?FLOKK_DB:create(?BUCKET(Env), User, ?TWO_I) of
-        {ok, ID} ->
-          case flokk_cart:initialize(ID, Env) of
-            {ok, _} = Res ->
-              io:format("~p~n", [Res]),
-              {ok, ID};
-            %% TODO if we get an error here we should do something
-            Error ->
-              io:format("~p~n", [Error]),
-              Error
-          end;
-        Error ->
-          Error
-      end;
+      ?FLOKK_DB:create(?BUCKET(Env), User, ?TWO_I);
     {ok, _} ->
       {error, email_in_use};
     Error ->

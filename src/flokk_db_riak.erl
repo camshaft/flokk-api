@@ -21,6 +21,7 @@
 -export([get/2]).
 -export([get_obj/2]).
 -export([keys_by_index/3]).
+-export([values_by_index/3]).
 -export([put/1]).
 -export([delete/2]).
 -export([keys/1]).
@@ -202,3 +203,10 @@ keys_by_index(Bucket, Key, Value) ->
       Error
   end.
 
+values_by_index(Bucket, Key, Value) ->
+  case keys_by_index(Bucket, Key, Value) of
+    {ok, Keys} ->
+      get_values(Bucket, Keys, []);
+    Error ->
+      Error
+  end.

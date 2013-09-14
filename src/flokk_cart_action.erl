@@ -21,11 +21,11 @@ validate(_Body, Req, State) ->
 
 add(ID, Body, Req, State) ->
   Offer = fast_key:get(<<"offer">>, Body),
+  1 = fast_key:get(<<"quantity">>, Body),
 
-  Quantity = fast_key:get(<<"quantity">>, Body),
-  PrevQuantity = fast_key:get(<<"prev-quantity">>, Body, 0),
+  % TODO verify the quantity is available
 
-  case flokk_cart:add(ID, Offer, Quantity - PrevQuantity, cowboy_env:get(Req)) of
+  case flokk_cart:set(ID, Offer, 1, cowboy_env:get(Req)) of
     {ok, Cart} ->
       UserID = cowboy_resource_owner:owner_id(Req),
       URL = cowboy_base:resolve([<<"carts">>, UserID], Req),
