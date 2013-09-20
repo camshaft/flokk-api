@@ -10,7 +10,7 @@
 
 start(_Type, _Args) ->
   RiakURL = simple_env:get_binary("RIAK_URL", <<"riak://localhost">>),
-  Min = simple_env:get_integer("RIAK_POOL_MIN", 50),
+  Min = simple_env:get_integer("RIAK_POOL_MIN", 5),
   Max = simple_env:get_integer("RIAK_POOL_MAX", 500),
   ok = riakou:start_link(RiakURL, [], Min, Max),
 
