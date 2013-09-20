@@ -17,8 +17,8 @@ start(_Type, _Args) ->
   Secret = simple_env:get_binary("ACCESS_TOKEN_KEY"),
   ScopeEnum = binary:split(simple_env:get_binary("SCOPES", <<>>), <<",">>, [global]),
 
-  {ok, _} = cowboy:start_http(http, Port = simple_env:get_integer("PORT", 5000), [
-    {port, simple_env:get_integer("PORT", 5000)}
+  {ok, _} = cowboy:start_http(http, simple_env:get_integer("NUM_LISTENERS", 100), [
+    {port, Port = simple_env:get_integer("PORT", 5000)}
   ], [
     {compress, true},
     {env, [
@@ -37,8 +37,15 @@ start(_Type, _Args) ->
       cowboy_pusher
     ]}
   ]),
+
   lager:info("Server started on port ~p", [Port]),
-  flokk_sup:start_link().
+
+  gen_batch_sup:start_link(),
+  simple_sup:start_link([
+    flokk_client,
+    {pusherl, start_link, [simple_env:get_binary("PUSHER_URL")]},
+    {flokk_item_scoreboard, start_link, [simple_env:get("SCOREBOARD_URL")]}
+  ]).
 
 stop(_State) ->
   ok.
