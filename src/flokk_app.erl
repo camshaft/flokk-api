@@ -9,20 +9,9 @@
 %% API.
 
 start(_Type, _Args) ->
-  RiakURL = simple_env:get_binary("RIAK_URL", <<"riak://localhost">>),
-  Min = simple_env:get_integer("RIAK_POOL_MIN", 5),
-  Max = simple_env:get_integer("RIAK_POOL_MAX", 500),
-  ok = riakou:start_link(RiakURL, [], Min, Max),
+  ok = riakou:start_link(simple_env:get_binary("RIAK_URL", <<"riak://localhost">>)),
+  ok = riakou:wait_for_connection(),
 
-  wait_for_riak(riakou:do(ping, [])).
-
-wait_for_riak(pong) ->
-  listen();
-wait_for_riak(_) ->
-  timer:sleep(5),
-  wait_for_riak(riakou:do(ping, [])).
-
-listen() ->
   erlenv:configure(fun configure/1),
 
   Secret = simple_env:get_binary("ACCESS_TOKEN_KEY"),
