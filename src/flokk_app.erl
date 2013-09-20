@@ -14,6 +14,15 @@ start(_Type, _Args) ->
   Max = simple_env:get_integer("RIAK_POOL_MAX", 500),
   ok = riakou:start_link(RiakURL, [], Min, Max),
 
+  wait_for_riak(riakou:do(ping, [])).
+
+wait_for_riak(pong) ->
+  listen();
+wait_for_riak(_) ->
+  timer:sleep(5),
+  wait_for_riak(riakou:do(ping, [])).
+
+listen() ->
   erlenv:configure(fun configure/1),
 
   Secret = simple_env:get_binary("ACCESS_TOKEN_KEY"),
@@ -30,7 +39,7 @@ start(_Type, _Args) ->
     {onresponse, fun flokk_hook:terminate/4},
     {middlewares, [
       cowboy_env,
-      {cowboy_fun, cowboy_cors:init()},
+      {cowboy_fun, cowboy_cors:init([handle_options])},
       cowboy_empty_favicon,
       {cowboy_fun, cowboy_base:init()},
       {cowboy_fun, cowboy_resource_owner:init(cowboy_resource_owner_simple_secrets:init(Secret, ScopeEnum))},
