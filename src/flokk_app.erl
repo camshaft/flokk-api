@@ -9,40 +9,31 @@
 %% API.
 
 start(_Type, _Args) ->
-  ENV = simple_env:get("ERL_ENV", "production"),
-
   RiakURL = simple_env:get_binary("RIAK_URL", <<"riak://localhost">>),
   Min = simple_env:get_integer("RIAK_POOL_MIN", 50),
   Max = simple_env:get_integer("RIAK_POOL_MAX", 500),
   ok = riakou:start_link(RiakURL, [], Min, Max),
 
-  configure(ENV),
+  erlenv:configure(fun configure/1),
 
-  Secret = simple_secrets:init(simple_env:get_binary("ACCESS_TOKEN_KEY")),
+  Secret = simple_env:get_binary("ACCESS_TOKEN_KEY"),
   ScopeEnum = binary:split(simple_env:get_binary("SCOPES", <<>>), <<",">>, [global]),
 
-  Routes = flokk_util:load_dispatch(?MODULE),
-
-  Listeners = simple_env:get_integer("NUM_LISTENERS", 100),
-  Port = simple_env:get_integer("PORT", 5000),
-
-  {ok, _} = cowboy:start_http(http, Listeners, [{port, Port}], [
+  {ok, _} = cowboy:start_http(http, Port = simple_env:get_integer("PORT", 5000), [
+    {port, simple_env:get_integer("PORT", 5000)}
+  ], [
     {compress, true},
     {env, [
-      {dispatch, cowboy_router:compile(Routes)},
-      {ss_token_secret, Secret},
-      {ss_scopes_enum, ScopeEnum},
-      {token_handler, cowboy_resource_owner_simple_secrets},
-      {cors, []}
+      {dispatch, cowboy_route_loader:compile(flokk)}
     ]},
     {onrequest, fun flokk_hook:start/1},
     {onresponse, fun flokk_hook:terminate/4},
     {middlewares, [
       cowboy_env,
-      cowboy_cors,
+      {cowboy_fun, cowboy_cors:init()},
       cowboy_empty_favicon,
-      cowboy_base,
-      cowboy_resource_owner,
+      {cowboy_fun, cowboy_base:init()},
+      {cowboy_fun, cowboy_resource_owner:init(cowboy_resource_owner_simple_secrets:init(Secret, ScopeEnum))},
       cowboy_router,
       cowboy_handler,
       cowboy_pusher
