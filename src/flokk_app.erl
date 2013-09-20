@@ -38,7 +38,7 @@ start(_Type, _Args) ->
     ]}
   ]),
 
-  lager:info("Server started on port ~p", [Port]),
+  lager:info("Server listening on port ~p", [Port]),
 
   gen_batch_sup:start_link(),
   simple_sup:start_link([
